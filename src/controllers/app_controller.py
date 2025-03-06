@@ -6,16 +6,20 @@ Path: src/controllers/app_controller.py
 import os
 import requests
 from utils.logging.dependency_injection import get_logger
+from src.models.app_model import TelegramUpdate  # ...nuevo import...
 
 # Initialize logger
 logger = get_logger("app_controller")
 
 def validate_telegram_token() -> bool:
     """
-    Valida que el token de Telegram esté definido y sea válido.
-    
+    Validates the presence and basic format of the Telegram token.
+
+    Checks if the 'TELEGRAM_TOKEN' environment variable is defined and contains 
+    a colon (':') to suggest a valid format.
+
     Returns:
-        bool: True si el token es válido, False en caso contrario
+        bool: True if the token exists and is valid, False otherwise.
     """
     token = os.getenv("TELEGRAM_TOKEN")
     if not token:
@@ -31,11 +35,16 @@ def validate_telegram_token() -> bool:
 
 def get_public_url():
     """
-    Obtiene la URL pública:
-      - Primero la busca en la variable de entorno PUBLIC_URL.
-      - Si no está definida, solicita al usuario que la ingrese.
+    Retrieves the public URL for the webhook configuration.
+
+    This function first checks the 'PUBLIC_URL' environment variable.
+    If not set, it prompts the user to input a temporary public URL.
+    It ensures that the URL starts with 'http://' or 'https://'.
+
     Returns:
-        tuple: (url, error_message)
+        tuple: A tuple containing:
+            - str: The retrieved public URL if successful.
+            - None if successful, or an error message string upon failure.
     """
     public_url = os.getenv("PUBLIC_URL")
     if public_url:
@@ -77,10 +86,17 @@ def get_public_url():
 
 def configure_webhook() -> tuple[bool, str]:
     """
-    Configura el webhook de Telegram.
-    
+    Configures the Telegram webhook with the provided token and public URL.
+
+    The function performs the following steps:
+      1. Validates the Telegram token.
+      2. Retrieves the public URL.
+      3. Sends a request to Telegram's API to set the webhook.
+
     Returns:
-        tuple: (success, error_message)
+        tuple: A tuple containing:
+            - bool: True if the webhook was successfully configured, False otherwise.
+            - str: An empty string on success, or an error message on failure.
     """
     if not validate_telegram_token():
         return False, "Token de Telegram inválido o no configurado"
@@ -104,9 +120,42 @@ def configure_webhook() -> tuple[bool, str]:
         logger.error(error_msg)
         return False, error_msg
 
-def process_update(update: dict):
+def process_update(update: dict) -> str | None:
     """
-    Procesa el update recibido desde Telegram.
-    Por ahora solo se imprime en consola.
+    Processes the update received from Telegram.
+
+    Currently, this function prints the update to the console.
+    Future enhancements might include additional processing logic.
+
+    Args:
+        update (dict): The update payload received from Telegram.
     """
-    print("Update recibido:", update)
+    # Convertir el diccionario update en un objeto TelegramUpdate
+    try:
+        telegram_update = TelegramUpdate.parse_obj(update)
+    except Exception as e:
+        print("Error parseando el update:", e)
+        return None
+
+    response = telegram_update.get_response()
+    if response:
+        print("Respuesta generada:", response)
+        # Enviar el mensaje generado a través de Telegram
+        chat = telegram_update.message.get("chat") if telegram_update.message else None
+        if chat and "id" in chat:
+            chat_id = chat["id"]
+            token = os.getenv("TELEGRAM_TOKEN")
+            send_message_url = f"https://api.telegram.org/bot{token}/sendMessage"
+            payload = {"chat_id": chat_id, "text": response}
+            try:
+                r = requests.post(send_message_url, json=payload, timeout=10)
+                r.raise_for_status()
+                print("Mensaje enviado a Telegram.")
+            except requests.exceptions.RequestException as e:
+                print("Error enviando mensaje a Telegram:", e)
+        else:
+            print("chat_id no encontrado en el update.")
+        return response
+    else:
+        print("Update recibido:", update)
+        return None
