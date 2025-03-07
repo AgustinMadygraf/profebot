@@ -6,7 +6,7 @@ Path: src/controllers/app_controller.py
 import os
 import requests
 from utils.logging.dependency_injection import get_logger
-from src.models.app_model import TelegramUpdate  # ...nuevo import...
+from src.models.app_model import TelegramUpdate
 
 # Initialize logger
 logger = get_logger("app_controller")
@@ -34,23 +34,7 @@ def validate_telegram_token() -> bool:
     return True
 
 def get_public_url():
-    """
-    Retrieves the public URL for the webhook configuration.
-
-    This function first checks the 'PUBLIC_URL' environment variable.
-    If not set, it prompts the user to input a temporary public URL.
-    It ensures that the URL starts with 'http://' or 'https://'.
-
-    Returns:
-        tuple: A tuple containing:
-            - str: The retrieved public URL if successful.
-            - None if successful, or an error message string upon failure.
-    """
-    public_url = os.getenv("PUBLIC_URL")
-    if public_url:
-        logger.info("Usando PUBLIC_URL del entorno: %s", public_url)
-        return public_url, None
-
+    " Solicita al usuario la URL pública y la valida "
     try:
         # Solo imprimimos una vez el mensaje
         print("\n=== Configuración de URL Pública ===")
@@ -120,42 +104,53 @@ def configure_webhook() -> tuple[bool, str]:
         logger.error(error_msg)
         return False, error_msg
 
-def process_update(update: dict) -> str | None:
-    """
-    Processes the update received from Telegram.
 
-    Currently, this function prints the update to the console.
-    Future enhancements might include additional processing logic.
-
-    Args:
-        update (dict): The update payload received from Telegram.
-    """
-    # Convertir el diccionario update en un objeto TelegramUpdate
+def parse_update(update: dict) -> TelegramUpdate | None:
+    " Parsea un update de Telegram y retorna un objeto TelegramUpdate "
     try:
-        telegram_update = TelegramUpdate.parse_obj(update)
-    except Exception as e:
-        print("Error parseando el update:", e)
+        return TelegramUpdate.parse_obj(update)
+    except ValueError as e:
+        logger.error("Error parseando el update: %s", e)
         return None
 
-    response = telegram_update.get_response()
+def generate_response(telegram_update: TelegramUpdate) -> str | None:
+    " Genera una respuesta para un objeto TelegramUpdate "
+    return telegram_update.get_response()
+
+def send_message(telegram_update: TelegramUpdate, text: str) -> None:
+    " Envía un mensaje de texto a un chat de Telegram "
+    chat = telegram_update.message.get("chat") if telegram_update.message else None
+    if not (chat and "id" in chat):
+        logger.error("chat_id no encontrado en el update.")
+        return
+    chat_id = chat["id"]
+    token = os.getenv("TELEGRAM_TOKEN")
+    send_message_url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {"chat_id": chat_id, "text": text}
+    try:
+        r = requests.post(send_message_url, json=payload, timeout=10)
+        r.raise_for_status()
+        logger.info("Mensaje enviado a Telegram a chat_id %s", chat_id)
+    except requests.exceptions.HTTPError as e:
+        logger.error("HTTP error enviando mensaje a Telegram: %s", e)
+    except requests.exceptions.ConnectionError as e:
+        logger.error("Connection error enviando mensaje a Telegram: %s", e)
+    except requests.exceptions.Timeout as e:
+        logger.error("Timeout enviando mensaje a Telegram: %s", e)
+    except requests.exceptions.RequestException as e:
+        logger.error("Error inesperado enviando mensaje a Telegram: %s", e)
+
+def process_update(update: dict) -> str | None:
+    " Procesa un update de Telegram y retorna una respuesta si es necesario "
+    telegram_update = parse_update(update)
+    if not telegram_update:
+        return None
+
+    response = generate_response(telegram_update)
     if response:
-        print("Respuesta generada:", response)
-        # Enviar el mensaje generado a través de Telegram
-        chat = telegram_update.message.get("chat") if telegram_update.message else None
-        if chat and "id" in chat:
-            chat_id = chat["id"]
-            token = os.getenv("TELEGRAM_TOKEN")
-            send_message_url = f"https://api.telegram.org/bot{token}/sendMessage"
-            payload = {"chat_id": chat_id, "text": response}
-            try:
-                r = requests.post(send_message_url, json=payload, timeout=10)
-                r.raise_for_status()
-                print("Mensaje enviado a Telegram.")
-            except requests.exceptions.RequestException as e:
-                print("Error enviando mensaje a Telegram:", e)
-        else:
-            print("chat_id no encontrado en el update.")
+        logger.info("Respuesta generada: %s", response)
+        send_message(telegram_update, response)
         return response
     else:
-        print("Update recibido:", update)
+        logger.info("Update recibido sin respuesta generada: %s", update)
         return None

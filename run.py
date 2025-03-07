@@ -27,7 +27,7 @@ def try_configure_webhook(max_retries=3, retry_delay=5):
 
     for attempt in range(max_retries):
         if attempt > 0:
-            print(f"\nReintento {attempt + 1}/{max_retries}...")
+            logger.info("Reintento %d/%d...", attempt + 1, max_retries)
             time.sleep(retry_delay)
 
         success, error_message = configure_webhook()

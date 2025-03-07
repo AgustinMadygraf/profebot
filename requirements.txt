@@ -1,0 +1,9 @@
+fastapi==0.115.11
+grpcio==1.67.1
+protobuf==6.30.0
+pydantic==2.10.6
+python-dotenv==1.0.1
+pywin32==308
+Requests==2.32.3
+uvicorn==0.34.0
+winshell==0.6

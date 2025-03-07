@@ -5,3 +5,5 @@ utils/__pycache__/
 __pycache__/
 logs/
 docs/todo.md
+src/docs/00-Prompt-for-ProjectAnalysis.md
+utils/config.json
