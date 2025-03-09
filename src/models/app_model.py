@@ -25,8 +25,7 @@ class TelegramUpdate(BaseModel):
             text = self.message.get('text')
             if text == 'test':
                 return (
-                    "¡Hola! ¿Cómo puedo ayudarte? ¿Que tenés ganas de aprender este 2025? "
-                    "Tenemos disponible [insertar_lista_de_cursos]."
+                    "¡Hola! ¿Cómo puedo ayudarte? <modo test>."
                 )
             api_key = os.getenv("GEMINI_API_KEY")
             if not api_key:

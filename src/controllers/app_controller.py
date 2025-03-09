@@ -71,16 +71,6 @@ def get_public_url():
 def configure_webhook() -> tuple[bool, str]:
     """
     Configures the Telegram webhook with the provided token and public URL.
-
-    The function performs the following steps:
-      1. Validates the Telegram token.
-      2. Retrieves the public URL.
-      3. Sends a request to Telegram's API to set the webhook.
-
-    Returns:
-        tuple: A tuple containing:
-            - bool: True if the webhook was successfully configured, False otherwise.
-            - str: An empty string on success, or an error message on failure.
     """
     if not validate_telegram_token():
         return False, "Token de Telegram inválido o no configurado"
@@ -96,8 +86,8 @@ def configure_webhook() -> tuple[bool, str]:
     try:
         response = requests.get(set_webhook_url, timeout=10)
         response.raise_for_status()
-        # Solo logueamos una vez el éxito
         logger.info("Webhook configurado en: %s", webhook_url)
+        logger.info("El webhook se ejecutó con éxito.")
         return True, ""
     except requests.exceptions.RequestException as e:
         error_msg = f"Error configurando webhook: {str(e)}"
@@ -126,7 +116,9 @@ def send_message(telegram_update: TelegramUpdate, text: str) -> None:
     chat_id = chat["id"]
     token = os.getenv("TELEGRAM_TOKEN")
     send_message_url = f"https://api.telegram.org/bot{token}/sendMessage"
+    logger.info("Enviando mensaje a URL: %s", send_message_url)
     payload = {"chat_id": chat_id, "text": text}
+    logger.info("Payload: %s", payload)
     try:
         r = requests.post(send_message_url, json=payload, timeout=10)
         r.raise_for_status()
@@ -142,7 +134,9 @@ def send_message(telegram_update: TelegramUpdate, text: str) -> None:
 
 def process_update(update: dict) -> str | None:
     " Procesa un update de Telegram y retorna una respuesta si es necesario "
+    logger.info("Procesando update: %s", update)
     telegram_update = parse_update(update)
+    logger.info("Update parseado: %s", telegram_update)
     if not telegram_update:
         return None
 
