@@ -11,9 +11,9 @@ from google.api_core.exceptions import GoogleAPIError
 from pydantic import BaseModel
 import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
-from utils.logging.logger_configurator import LoggerConfigurator
+from utils.logging.dependency_injection import get_logger
 
-_fallback_logger = LoggerConfigurator().configure()
+_fallback_logger = get_logger("app_model")
 
 class TelegramUpdate(BaseModel):
     " Modelo para representar un objeto de actualización de Telegram "

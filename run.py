@@ -4,18 +4,24 @@ Path: run.py
 
 import os
 import time
+import sys
 from fastapi import FastAPI
 from dotenv import load_dotenv
 import uvicorn
 from src.views.app_view import router as app_router
 from src.controllers.app_controller import configure_webhook
-from utils.logging.dependency_injection import get_logger
+from utils.logging.dependency_injection import get_logger, is_verbose
 from src.services.presentation_service import PresentationService
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
+# Obtener el logger simplificado
 logger = get_logger()
+
+# Información de debugging
+logger.debug("Argumentos de línea de comandos: %s", sys.argv)
+logger.debug("Modo verbose activo: %s", is_verbose())
 
 app = FastAPI()
 
@@ -55,7 +61,12 @@ def section(message):
 
 if __name__ == '__main__':
     section("Iniciando ProfeBot")
-    logger.debug("Cargando configuración...")
+
+    # Estos logs son para demostrar los diferentes niveles
+    logger.debug("Este mensaje solo aparece en modo verbose")
+    logger.info("Información general del sistema")
+    logger.warning("Este es un mensaje de advertencia")
+    logger.error("Este es un mensaje de error")
 
     # Configurar el webhook de Telegram con reintentos
     try_configure_webhook()

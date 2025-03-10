@@ -1,114 +1,71 @@
 """
 Path: utils/logging/dependency_injection.py
-Contenedor de dependencias para inyección de dependencias.
-Facilita el acceso a servicios centralizados como el logger.
+Simplified dependency injection for logging.
+Provides access to loggers without complex configuration.
 """
 
-import os
-import logging
 import sys
-from utils.logging.logger_configurator import (
-        LoggerConfigurator,
-        log_debug as log_debug_base,
-        set_debug_verbose,
-        get_debug_verbose
-    )
-from utils.logging.logger_factory import LoggerFactory
-from utils.logging.info_error_filter import InfoErrorFilter
-from utils.logging.exclude_http_logs_filter import ExcludeHTTPLogsFilter
-# Importar directamente de interface en lugar de src.cli
-from src.cli.interface import set_verbose, set_colors
+import logging
+from utils.logging.simple_logger import get_logger, set_verbose, is_verbose, initialize
 
-# Verificar si debemos activar el modo verbose por la línea de comandos
+# Initialize logging before anything else
+initialize()
+
+# Get command line arguments
 verbose_mode = "--verbose" in sys.argv
 no_colors = "--no-colors" in sys.argv
 
+# Configure verbose mode based on command line arguments
+set_verbose(verbose_mode)
+
+# Get a logger for this module
+_logger = get_logger("dependency_injection")
+
+# Log initialization information
 if verbose_mode:
-    set_debug_verbose(True)
-    set_verbose(True)
-    print("Activando modo DEBUG_VERBOSE desde dependency_injection")
+    _logger.debug("Verbose mode enabled from command line arguments")
 else:
-    print("Modo DEBUG_VERBOSE no activado desde dependency_injection")
+    _logger.info("Standard logging mode (use --verbose for debug messages)")
 
-# Configurar uso de colores
-set_colors(not no_colors)
+# Import and configure CLI interface for colors
+try:
+    from src.cli.interface import set_colors, set_verbose as cli_set_verbose
+    set_colors(not no_colors)
+    cli_set_verbose(verbose_mode)
 
-# Determinar el nivel de logging basado en el modo verbose
-LOG_LEVEL = logging.DEBUG if verbose_mode else logging.INFO
-print(f"Nivel de logging inicial: {logging.getLevelName(LOG_LEVEL)}")
+    if no_colors:
+        _logger.info("Color output disabled (--no-colors)")
+except ImportError:
+    _logger.debug("CLI interface not available - color settings not applied")
 
-# Definir la ruta al archivo JSON
-JSON_CONFIG_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-    'utils',
-    'logging',
-    'logging.json'
-)
+# For backward compatibility with any code that might use these
+def get_debug_verbose():
+    """For backward compatibility"""
+    return is_verbose()
 
-# Crear una instancia del configurador con el nivel apropiado
-configurator = LoggerConfigurator()
+def set_debug_verbose(enabled=True):
+    """For backward compatibility"""
+    set_verbose(enabled)
 
-# Registrar filtros para el caso de configuración manual
-configurator.register_filter(InfoErrorFilter)
-configurator.register_filter(ExcludeHTTPLogsFilter)
+def log_debug(message, *args, **kwargs):
+    """For backward compatibility"""
+    get_logger().debug(message, *args, **kwargs)
 
-# Configurar el logger - primero intentar desde JSON, fallback a configuración manual
-if os.path.exists(JSON_CONFIG_PATH):
-    logger = configurator.configure_from_json(JSON_CONFIG_PATH)
-else:
-    logger = configurator.configure()
+# Clean up any old logging configurations to avoid conflicts
+def clean_old_logging():
+    """Remove any old logging handlers to avoid duplication"""
+    # Reset the root logger
+    root = logging.getLogger()
+    if hasattr(root, "_cleaned_by_simple_logger"):
+        return  # Already cleaned
 
-def get_logger(name: str = "profebot") -> logging.Logger:
-    """
-    Retorna un logger configurado.
-    Si se solicita el logger predeterminado, devuelve el logger principal.
-    De lo contrario, busca o crea un logger con el nombre especificado.
-    
-    Args:
-        name: Nombre del logger a obtener
-        
-    Returns:
-        Logger configurado
-    """
-    if name == "profebot" or name == "default":
-        return LoggerFactory.get_default_logger()
-    return LoggerFactory.get_logger(name)
+    _logger.debug("Cleaning up old logging configurations")
 
-def log_debug(message: str, *args, **kwargs) -> None:
-    """
-    Función centralizada para registrar mensajes de debug.
-    Utiliza la funcionalidad de log_debug con información adicional
-    cuando el modo verbose está activado.
-    
-    Args:
-        message: Mensaje a registrar
-        *args: Argumentos posicionales para el mensaje
-        **kwargs: Argumentos con nombre para la llamada al logger
-    """
-    log_debug_base(message, *args, **kwargs)
+    # Mark as cleaned
+    setattr(root, "_cleaned_by_simple_logger", True)
 
-def enable_verbose_debug(enabled: bool = True) -> None:
-    """
-    Activa o desactiva el modo verbose para mensajes de debug.
-    Función de conveniencia para set_debug_verbose.
-    
-    Args:
-        enabled: True para activar, False para desactivar
-    """
-    # Usar directamente la función del configurador
-    set_debug_verbose(enabled)
+# Run cleanup
+clean_old_logging()
 
-    # Obtener un logger para registrar el cambio
-    local_logger = get_logger("dependency_injection")
-    mode = "activado" if enabled else "desactivado"
-    local_logger.info(f"Modo debug verbose {mode}")
-
-def is_verbose_debug_enabled() -> bool:
-    """
-    Verifica si el modo verbose de debug está activado.
-    Función de conveniencia para get_debug_verbose.
-    
-    Returns:
-        True si está activado, False si no
-    """
-    return get_debug_verbose()
+# Export public functions
+__all__ = ['get_logger', 'set_verbose', 'is_verbose']

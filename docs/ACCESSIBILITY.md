@@ -35,7 +35,8 @@ python run.py --no-colors --verbose
 Si está integrando ProfeBot en otra aplicación, puede configurar estas opciones programáticamente:
 
 ```python
-from src.cli.interface import set_colors, set_verbose
+from utils.logging.dependency_injection import set_verbose
+from src.cli.interface import set_colors
 
 # Desactivar colores
 set_colors(False)
@@ -43,10 +44,6 @@ set_colors(False)
 # Activar modo verbose
 set_verbose(True)
 ```
-
-## Personalización de Colores
-
-Si los colores predeterminados no son adecuados para sus necesidades específicas de accesibilidad, puede modificar los valores en la clase `Colors` en el archivo `src/cli/interface.py`.
 
 ## Soporte para Lectores de Pantalla
 
