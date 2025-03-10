@@ -16,14 +16,22 @@ from utils.logging.logger_configurator import (
 from utils.logging.logger_factory import LoggerFactory
 from utils.logging.info_error_filter import InfoErrorFilter
 from utils.logging.exclude_http_logs_filter import ExcludeHTTPLogsFilter
+# Importar directamente de interface en lugar de src.cli
+from src.cli.interface import set_verbose, set_colors
 
 # Verificar si debemos activar el modo verbose por la línea de comandos
 verbose_mode = "--verbose" in sys.argv
+no_colors = "--no-colors" in sys.argv
+
 if verbose_mode:
     set_debug_verbose(True)
+    set_verbose(True)
     print("Activando modo DEBUG_VERBOSE desde dependency_injection")
 else:
     print("Modo DEBUG_VERBOSE no activado desde dependency_injection")
+
+# Configurar uso de colores
+set_colors(not no_colors)
 
 # Determinar el nivel de logging basado en el modo verbose
 LOG_LEVEL = logging.DEBUG if verbose_mode else logging.INFO

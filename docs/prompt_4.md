@@ -26,3 +26,5 @@
 - No avances al siguiente paso sin validar el anterior.
 - Si hay dudas o riesgos, pregunta antes de ejecutar.
 - No incorpores puebas ni unitarias ni de integración
+
+

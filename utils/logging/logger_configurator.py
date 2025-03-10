@@ -118,23 +118,23 @@ class LoggerConfigurator:
             if 'handlers' in config:
                 self._prepare_log_directories(config)
 
-            # Ajustar nivel por defecto para respetar el nivel INFO a menos que DEBUG_VERBOSE esté activo
             if not DEBUG_VERBOSE:
                 # Ajustar nivel del logger principal si existe
                 if 'loggers' in config and self.logger_name in config['loggers']:
                     config['loggers'][self.logger_name]['level'] = 'INFO'
-                
+
                 # Ajustar nivel de handlers que no son específicos de errores
                 if 'handlers' in config:
                     for handler_name, handler_config in config['handlers'].items():
                         if 'level' in handler_config and handler_config['level'] == 'DEBUG':
                             if not handler_name.startswith('error'):
                                 handler_config['level'] = 'INFO'
-                
+
                 # Ajustar nivel del logger raíz si existe
-                if 'root' in config and 'level' in config['root'] and config['root']['level'] == 'DEBUG':
+                if ('root' in config and 'level' in config['root'] and 
+                        config['root']['level'] == 'DEBUG'):
                     config['root']['level'] = 'INFO'
-                    
+
                 print("Niveles de logging ajustados a INFO (modo no verbose)")
 
             print("Aplicando configuración mediante dictConfig")
@@ -145,7 +145,10 @@ class LoggerConfigurator:
             # Obtener logger configurado
             logger = logging.getLogger(self.logger_name)
             logger_level_name = logging.getLevelName(logger.level)
-            print(f"Logger '{self.logger_name}' configurado con nivel: {logger.level} ({logger_level_name})")
+            print(
+                f"Logger '{self.logger_name}' configurado con nivel: "
+                f"{logger.level} ({logger_level_name})"
+            )
 
             # Registrar en LoggerFactory para acceso global
             LoggerFactory.set_default_logger(logger)
@@ -456,7 +459,9 @@ class LoggerConfigurator:
         if DEBUG_VERBOSE:
             # Obtener información del llamador
             caller_frame = sys._getframe(1)
-            caller_info = f"[{os.path.basename(caller_frame.f_code.co_filename)}:{caller_frame.f_lineno}]"
+            filename = os.path.basename(caller_frame.f_code.co_filename)
+            lineno = caller_frame.f_lineno
+            caller_info = f"[{filename}:{lineno}]"
             
             # Añadir información del llamador al mensaje
             enhanced_message = f"{caller_info} {message}"
