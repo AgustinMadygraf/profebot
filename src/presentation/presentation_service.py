@@ -167,60 +167,70 @@ class PresentationService:
             return cls._plugins[name](*args, **kwargs)
         return None
 
-    # Métodos adicionales consolidados de la versión antigua
     def show_webhook_configuration_start(self):
-        # Suponiendo que la interfaz disponga de un método section
+        " Muestra el mensaje de inicio de configuración del webhook "
         self.interface.section("Configuración del webhook")
-        self.interface.info("Por favor, proporcione la información necesaria para configurar el webhook de Telegram.")
+        self.interface.info(
+            "Por favor, proporcione la información necesaria para configurar el webhook de Telegram"
+        )
 
     def show_webhook_configuration_success(self, url: str):
+        " Muestra el mensaje de éxito de configuración del webhook "
         self.interface.success(f"¡Webhook configurado correctamente en: {url}!")
         self.interface.info("El bot ahora está listo para recibir mensajes.")
 
-    def show_webhook_configuration_failure(self, error_message: str, attempt: int, max_attempts: int):
+    def show_webhook_configuration_failure(
+        self, error_message: str, attempt: int, max_attempts: int
+    ):
+        " Muestra el mensaje de fallo de configuración del webhook "
         if attempt < max_attempts:
-            self.interface.warning(f"[REINTENTO] Intento {attempt}/{max_attempts} fallido: {error_message}")
+            self.interface.warning(
+                f"[REINTENTO] Intento {attempt}/{max_attempts} fallido: "
+                f"{error_message}"
+            )
         else:
-            self.interface.error(f"[FINAL] Último intento ({attempt}/{max_attempts}) fallido: {error_message}")
+            self.interface.error(
+                f"[FINAL] Último intento ({attempt}/{max_attempts}) fallido: "
+                f"{error_message}"
+            )
 
     def show_webhook_retry_info(self, attempt: int, max_attempts: int, delay: int):
+        " Muestra información sobre un reintento de configuración del webhook "
         self.interface.warning(f"Reintento {attempt+1}/{max_attempts} en {delay} segundos...")
 
     def show_webhook_all_attempts_failed(self):
+        " Muestra el mensaje de fallo de todos los intentos de configuración del webhook "
         full_message = (
             "[FALLO] No se pudo configurar el webhook después de varios intentos.\n"
             "[FALLO] El servidor iniciará, pero el bot podría no recibir mensajes.\n"
             "[SUGERENCIA] Acciones recomendadas:\n"
             "1. Verifique que TELEGRAM_TOKEN esté configurado correctamente\n"
-            "2. Configure PUBLIC_URL en el archivo .env o proporcione una URL pública válida cuando se solicite\n"
+            "2. Configure PUBLIC_URL en el archivo .env o proporcione una URL pública válida "
+            "cuando se solicite\n"
             "3. Asegúrese de que la URL sea accesible"
         )
         self.interface.error(full_message)
 
     def show_update_processing(self, update):
+        " Muestra un mensaje de depuración para el procesamiento de un update de Telegram "
         self.interface.info("Procesando update de Telegram")
         self.interface.debug(f"Datos del update: {update}")
 
     def show_response_generated(self, response: str):
+        " Muestra un mensaje de depuración para la generación de una respuesta"
         self.interface.info("Respuesta generada:")
         self.interface.info(response)
 
     def show_message_sent(self, chat_id: int):
+        " Muestra un mensaje de éxito al enviar un mensaje a un chat de Telegram "
         self.interface.info(f"Mensaje enviado correctamente al chat_id: {chat_id}")
 
     def show_message_send_error(self, error_msg: str):
+        " Muestra un mensaje de error al enviar un mensaje a un chat de Telegram "
         self.interface.error(f"Error al enviar mensaje: {error_msg}")
 
     def show_server_start(self, port: int):
+        " Muestra un mensaje de inicio del servidor web "
         self.interface.section("Iniciando servidor Web")
         self.interface.info(f"Servidor configurado en el puerto {port}")
         self.interface.info("Presione Ctrl+C para detener")
-
-# ANALYSIS:
-# - Métodos comunes incorporados:
-#    • Métodos de presentación de mensajes: show_welcome_message, show_server_status, show_webhook_status, etc.
-#    • Métodos consolidados de la versión antigua: show_webhook_configuration_start, show_webhook_configuration_success, etc.
-# - Llamadas en otros módulos:
-#    • main.py usa show_server_status.
-#    • webhook.py utiliza notify_operation_start, show_debug_info, ask_for_retry y show_error_message.
-#    • app_controller.py utiliza show_message_send_error, show_update_processing, show_response_generated y show_message_sent.

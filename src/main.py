@@ -42,12 +42,8 @@ def main():
     app = create_app()
     use_colors = should_use_colors()
     port = int(os.getenv("PORT", "8000"))
-    interface = Interface(use_colors=use_colors)  # Se pasa el parámetro use_colors
+    interface = Interface(use_colors=use_colors)
     presentation_service = PresentationService(interface)
-    # ANALYSIS:
-    # - Se instancia PresentationService usando la Interface inyectada.
-    # - Se invoca show_server_status para notificar el estado del servidor.
-    # - Los logs y la configuración inicial confirman el enlace correcto hacia la versión unificada.
     presentation_service.show_server_status(True, "0.0.0.0", port)
     try_configure_webhook(use_colors)
     app.run(host="0.0.0.0", port=port, debug=True)

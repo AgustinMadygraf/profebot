@@ -16,13 +16,6 @@ logger = get_logger("app_controller")
 default_interface = Interface(use_colors=False)
 presentation_service = PresentationService(default_interface)
 
-# ANALYSIS:
-# - Este módulo usa PresentationService (instancia "presentation_service") para:
-#    • Mostrar errores (show_message_send_error)
-#    • Indicar el procesamiento de updates (show_update_processing)
-#    • Mostrar respuestas generadas (show_response_generated)
-#    • Notificar envío de mensajes (show_message_sent)
-
 def validate_telegram_token() -> bool:
     """
     Validates the presence and basic format of the Telegram token.
@@ -32,39 +25,6 @@ def validate_telegram_token() -> bool:
         presentation_service.show_message_send_error(error_msg)
         return False
     return True
-
-def get_public_url():
-    " Solicita al usuario la URL pública y la valida "
-    try:
-        # Usar el servicio de presentación para organización visual y solicitud
-        public_url = PresentationService.ask_for_public_url()
-
-        if not public_url:
-            error_msg = "No se proporcionó una URL"
-            presentation_service.show_message_send_error(error_msg)
-            return None, error_msg
-
-        if not public_url.startswith(("http://", "https://")):
-            error_msg = "La URL debe comenzar con http:// o https://"
-            presentation_service.show_message_send_error(error_msg)
-            return None, error_msg
-
-        logger.info("URL proporcionada: %s", public_url)
-        return public_url, None
-
-    except KeyboardInterrupt:
-        error_msg = "Operación cancelada por el usuario"
-        presentation_service.show_message_send_error(error_msg)
-        return None, error_msg
-    except ValueError as e:
-        error_msg = f"Error de valor obteniendo la URL pública: {str(e)}"
-        presentation_service.show_message_send_error(error_msg)
-        return None, error_msg
-    except OSError as e:
-        error_msg = f"Error del sistema obteniendo la URL pública: {str(e)}"
-        presentation_service.show_message_send_error(error_msg)
-        return None, error_msg
-
 
 def process_update(update: dict) -> str | None:
     " Procesa un update de Telegram y retorna una respuesta si es necesario "
