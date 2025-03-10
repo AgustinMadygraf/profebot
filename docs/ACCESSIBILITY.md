@@ -35,7 +35,7 @@ python run.py --no-colors --verbose
 Si está integrando ProfeBot en otra aplicación, puede configurar estas opciones programáticamente:
 
 ```python
-from utils.logging.dependency_injection import set_verbose
+from src.utils.logging.dependency_injection import set_verbose
 from src.cli.interface import set_colors
 
 # Desactivar colores

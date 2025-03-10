@@ -11,7 +11,7 @@ from google.api_core.exceptions import GoogleAPIError
 from pydantic import BaseModel
 import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
-from utils.logging.dependency_injection import get_logger
+from src.utils.logging.dependency_injection import get_logger
 
 _fallback_logger = get_logger("app_model")
 
@@ -32,7 +32,7 @@ class TelegramUpdate(BaseModel):
                 return "Error: GEMINI_API_KEY no configurado."
             # Cargar system_instruction desde utils/config.json
             try:
-                config_path = os.path.join(os.path.dirname(__file__), "../../utils/config.json")
+                config_path = os.path.join(os.path.dirname(__file__), "../utils/config.json")
                 with open(config_path, "r", encoding="utf-8") as f:
                     config = json.load(f)
                 system_instruction = config.get(

@@ -4,7 +4,7 @@ Interfaz centralizada para interacción de línea de comandos.
 """
 
 from src.console.console_interface import UnifiedConsoleInterface
-from utils.config.app_config import (
+from src.utils.config.app_config import (
     get_config,
     set_verbose as config_set_verbose,
     set_colors as config_set_colors,

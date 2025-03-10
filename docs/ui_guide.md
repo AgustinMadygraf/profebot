@@ -23,7 +23,7 @@ La API de presentación ofrece los siguientes métodos:
 La configuración de colores y verbosidad ahora está centralizada:
 
 ```python
-from utils.config.app_config import get_config, set_verbose, set_colors
+from src.utils.config.app_config import get_config, set_verbose, set_colors
 
 # Leer configuración
 config = get_config()

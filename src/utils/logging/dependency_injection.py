@@ -5,8 +5,8 @@ Provides access to loggers without complex configuration.
 """
 
 import sys
-from utils.logging.simple_logger import get_logger, set_verbose, is_verbose, initialize
-from utils.config.app_config import (
+from src.utils.logging.simple_logger import get_logger, set_verbose, is_verbose, initialize
+from src.utils.config.app_config import (
     get_config,
     set_verbose as config_set_verbose,
     set_colors as config_set_colors

@@ -1,5 +1,5 @@
 {
-    "_path": "utils/config-example.json",
+    "_path": "src/utils/config-example.json",
     "system_instructions": "Sos un bot de asistencia. Tu misión es brindar información y apoyo a los usuarios de esta comunidad. Responde de manera clara y útil.",
     "rules": [
         {

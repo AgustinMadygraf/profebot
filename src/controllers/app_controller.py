@@ -3,7 +3,7 @@ Path: src/controllers/app_controller.py
 Controlador de la aplicación que maneja las solicitudes.
 """
 
-from utils.logging.dependency_injection import get_logger
+from src.utils.logging.dependency_injection import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
 from src.services.presentation_service import PresentationService

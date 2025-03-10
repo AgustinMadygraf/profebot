@@ -1,9 +1,9 @@
 .env
 src/controllers/__pycache__/
 src/views/__pycache__/
-utils/__pycache__/
+src/utils/__pycache__/
 __pycache__/
 logs/
 docs/todo.md
 src/docs/00-Prompt-for-ProjectAnalysis.md
-utils/config.json
+src/utils/config.json
