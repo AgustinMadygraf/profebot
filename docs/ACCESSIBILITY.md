@@ -54,4 +54,8 @@ Los mensajes de consola están diseñados con prefijos claros para cada tipo de 
 - Algunas terminales en Windows pueden no mostrar correctamente los colores ANSI.
 - Los terminales que no soportan UTF-8 pueden mostrar caracteres extraños en ciertos mensajes.
 
+## Nueva API de Presentación
+
+Se ha implementado una API unificada para centralizar y estandarizar los mensajes de consola. Esta modificación garantiza consistencia en la salida, permitiendo que los mensajes (informativos, de error, advertencia y debug) sigan un formato único y fácilmente configurable.
+
 Si encuentra problemas de accesibilidad, por favor reporte un issue en nuestro repositorio.

@@ -29,6 +29,7 @@ else:
 # Import and configure CLI interface for colors
 try:
     from src.cli.interface import set_colors, set_verbose as cli_set_verbose
+    # Aquí no es necesario cambiar nada ya que importa directamente de src.cli.interface
     set_colors(not no_colors)
     cli_set_verbose(verbose_mode)
 

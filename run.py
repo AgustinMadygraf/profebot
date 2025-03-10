@@ -12,7 +12,8 @@ from src.controllers.app_controller import configure_webhook, get_public_url
 from src.services.telegram_service import TelegramService
 from src.presentation.presentation_service import PresentationService
 from src.presentation.interface import Interface
-from utils.logging.dependency_injection import get_logger, is_verbose
+from utils.logging.dependency_injection import get_logger
+from utils.config.app_config import get_config, is_verbose, should_use_colors
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -24,8 +25,9 @@ logger = get_logger()
 logger.debug("Argumentos de línea de comandos: %s", sys.argv)
 logger.debug("Modo verbose activo: %s", is_verbose())
 
-# Determinar el uso de colores basado en argumentos de línea de comandos
-use_colors = not "--no-colors" in sys.argv
+# Obtener la configuración centralizada
+config = get_config()
+use_colors = should_use_colors()
 
 app = FastAPI()
 
@@ -39,7 +41,7 @@ def try_configure_webhook():
         print(f"No se pudo obtener la URL pública: {error}")
         return False
     # Inicializar los servicios necesarios
-    local_interface = Interface()
+    local_interface = Interface(use_colors=use_colors)  # Usar configuración centralizada
     local_presentation_service = PresentationService(local_interface)
     telegram_service = TelegramService()
     # Configurar el webhook
@@ -62,8 +64,8 @@ def section(message):
 
 if __name__ == '__main__':
     section("Iniciando ProfeBot")
-    # Se agrega indicación de progreso
-    print("[PROCESO] Configurando webhook, por favor espere...")
+    # Se agrega indicación de progreso según la guía de estilo de errores
+    logger.info("[PROCESO] Configurando webhook, por favor espere...")
 
     # Estos logs son para demostrar los diferentes niveles
     logger.debug("Este mensaje solo aparece en modo verbose")

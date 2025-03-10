@@ -44,13 +44,15 @@ class PresentationService:
     @staticmethod
     def show_webhook_all_attempts_failed():
         """Muestra mensaje cuando todos los intentos de configuración han fallado."""
-        error("[FALLO] No se pudo configurar el webhook después de varios intentos.")
-        error("[FALLO] El servidor iniciará, pero el bot podría no recibir mensajes.")
-        error("[SUGERENCIA] Acciones recomendadas:")
-        error("1. Verifique que TELEGRAM_TOKEN está configurado correctamente")
-        error("2. Configure PUBLIC_URL en el archivo .env o")
-        error("   Proporcione una URL pública válida cuando se solicite")
-        error("3. Asegúrese de que la URL sea accesible")
+        full_message = (
+            "[FALLO] No se pudo configurar el webhook después de varios intentos.\n"
+            "[FALLO] El servidor iniciará, pero el bot podría no recibir mensajes.\n"
+            "[SUGERENCIA] Acciones recomendadas:\n"
+            "1. Verifique que TELEGRAM_TOKEN esté configurado correctamente\n"
+            "2. Configure PUBLIC_URL en el archivo .env o proporcione una URL pública válida cuando se solicite\n"
+            "3. Asegúrese de que la URL sea accesible"
+        )
+        error(full_message)
 
     @staticmethod
     def ask_for_public_url():

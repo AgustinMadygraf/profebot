@@ -27,7 +27,7 @@ class UnifiedConsoleInterface:
         else:
             print(f"{prefix}{message}")
 
-    def warn(self, message):
+    def warning(self, message):
         "Muestra un mensaje de advertencia en la consola."
         prefix = "[WARNING]: "
         if self.use_colors:

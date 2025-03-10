@@ -4,12 +4,23 @@ Interfaz centralizada para interacción de línea de comandos.
 """
 
 from src.console.console_interface import UnifiedConsoleInterface
+# Modificamos la importación para hacerla directamente desde app_config en lugar de usar __init__.py
+from utils.config.app_config import get_config, set_verbose as config_set_verbose, set_colors as config_set_colors
 
 class CLInterface:
     "Interfaz centralizada para interacción de línea de comandos."
-    def __init__(self, verbose: bool = False, use_colors: bool = True):
-        self.verbose = verbose
-        self.console = UnifiedConsoleInterface(use_colors)
+    def __init__(self, verbose: bool = None, use_colors: bool = None):
+        # Obtener valores de configuración global si no se especifican
+        config = get_config()
+        self.verbose = verbose if verbose is not None else config.verbose_mode
+        use_colors_value = use_colors if use_colors is not None else config.use_colors
+        self.console = UnifiedConsoleInterface(use_colors_value)
+
+        # Sincronizar config global con valores locales
+        if verbose is not None:
+            config_set_verbose(verbose)
+        if use_colors is not None:
+            config_set_colors(use_colors)
 
     def info(self, message: str, *args):
         " Muestra un mensaje informativo en la consola."
@@ -17,7 +28,7 @@ class CLInterface:
 
     def warning(self, message: str, *args):
         " Muestra un mensaje de advertencia en la consola."
-        self.console.warn(message % args if args else message)
+        self.console.warning(message % args if args else message)
 
     def error(self, message: str, *args):
         " Muestra un mensaje de error en la consola."
@@ -50,10 +61,12 @@ cli = CLInterface()
 def set_verbose(verbose: bool):
     "Establece el nivel de verbosidad de la interfaz."
     cli.verbose = verbose
+    config_set_verbose(verbose)  # Sincronizar con config global
 
 def set_colors(use_colors: bool):
-    "Establece el uso de colores en la interf"
+    "Establece el uso de colores en la interfaz"
     cli.console.use_colors = use_colors
+    config_set_colors(use_colors)  # Sincronizar con config global
 
 def info(message: str, *args, **kwargs):
     "Muestra un mensaje informativo en la consola."

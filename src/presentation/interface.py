@@ -20,12 +20,17 @@ class Interface:
         " Muestra un mensaje de éxito en la consola."
         self.console.success(message)
 
-    def warn(self, message):
+    def warning(self, message):
         " Muestra un mensaje de advertencia en la consola, incluyendo recomendaciones."
         enhanced_message = message
         if "webhook" in message.lower():
             enhanced_message += " - Considere revisar la configuración del servidor o webhook."
-        self.console.warn(enhanced_message)
+        self.console.warning(enhanced_message)
+
+    # Método de compatibilidad para código antiguo
+    def warn(self, message):
+        " Alias de warning para mantener retrocompatibilidad."
+        return self.warning(message)
 
     def error(self, message):
         " Muestra un mensaje de error en la consola, agregando sugerencias si aplica."
