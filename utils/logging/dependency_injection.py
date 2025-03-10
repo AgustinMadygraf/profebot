@@ -5,7 +5,6 @@ Provides access to loggers without complex configuration.
 """
 
 import sys
-import logging
 from utils.logging.simple_logger import get_logger, set_verbose, is_verbose, initialize
 
 # Initialize logging before anything else
@@ -50,22 +49,6 @@ def set_debug_verbose(enabled=True):
 def log_debug(message, *args, **kwargs):
     """For backward compatibility"""
     get_logger().debug(message, *args, **kwargs)
-
-# Clean up any old logging configurations to avoid conflicts
-def clean_old_logging():
-    """Remove any old logging handlers to avoid duplication"""
-    # Reset the root logger
-    root = logging.getLogger()
-    if hasattr(root, "_cleaned_by_simple_logger"):
-        return  # Already cleaned
-
-    _logger.debug("Cleaning up old logging configurations")
-
-    # Mark as cleaned
-    setattr(root, "_cleaned_by_simple_logger", True)
-
-# Run cleanup
-clean_old_logging()
 
 # Export public functions
 __all__ = ['get_logger', 'set_verbose', 'is_verbose']

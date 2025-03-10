@@ -4,7 +4,9 @@ Servicio para manejar toda la lógica de presentación e interacción con el usu
 Centraliza la comunicación con la interfaz CLI para mayor separación de responsabilidades.
 """
 
-from src.cli.interface import info, debug, error, warning, get_input, section, confirm
+from src.cli.interface import (
+    info, debug, error, warning, get_input, section
+)
 
 class PresentationService:
     """
@@ -16,7 +18,8 @@ class PresentationService:
     def show_webhook_configuration_start():
         """Muestra mensaje de inicio de configuración del webhook."""
         section("Configuración del webhook")
-        info("Por favor, proporcione la información necesaria para configurar el webhook de Telegram.")
+        info("Por favor, proporcione la información necesaria para configurar "
+             "el webhook de Telegram.")
 
     @staticmethod
     def show_webhook_configuration_success(url: str):

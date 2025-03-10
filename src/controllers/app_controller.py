@@ -53,28 +53,79 @@ def get_public_url():
         PresentationService.show_message_send_error(error_msg)
         return None, error_msg
 
-def configure_webhook() -> tuple[bool, str]:
+def configure_webhook(base_url, webhook_endpoint, presentation_service, telegram_service):
+    """Configura el webhook de Telegram
+    
+    Args:
+        base_url (str): URL base del servidor
+        webhook_endpoint (str): Endpoint del webhook
+        presentation_service (PresentationService): Servicio de presentación
+        telegram_service (TelegramService): Servicio de Telegram
+        
+    Returns:
+        tuple: (bool, str) - (éxito, mensaje de error)
     """
-    Configures the Telegram webhook with the provided token and public URL.
-    """
-    if not validate_telegram_token():
-        return False, "Token de Telegram inválido o no configurado"
+    presentation_service.notify_operation_start("Configuración de webhook")
 
-    public_url, err = get_public_url()
-    if not public_url:
-        return False, err
+    try:
+        # Intentar configurar webhook
+        webhook_url = f"{base_url}/{webhook_endpoint}"
+        presentation_service.show_debug_info(
+            f"Intentando configurar webhook en: {webhook_url}"
+        )
 
-    success, error_msg = TelegramService.configure_webhook(public_url)
+        success, error_message = telegram_service.configure_webhook(webhook_url)
 
-    if success:
-        # Replace direct call to info() with PresentationService
-        logger.info("Webhook configurado en: %s", public_url)
-        PresentationService.show_webhook_configuration_success(public_url)
-        return True, ""
-    else:
-        # Replace direct call to error() with PresentationService
-        PresentationService.show_message_send_error(error_msg)
-        return False, error_msg
+        if success:
+            presentation_service.show_webhook_status(True, webhook_url)
+            return True, None
+        else:
+            presentation_service.show_webhook_status(False)
+
+            # Solicitar confirmación para reintento
+            if presentation_service.ask_for_retry("configuración del webhook"):
+                return configure_webhook(
+                    base_url, webhook_endpoint, presentation_service, telegram_service
+                )  # Reintentar recursivamente
+            else:
+                presentation_service.show_warning_message(
+                    "Webhook no configurado por decisión del usuario"
+                )
+                return False, "Webhook no configurado por decisión del usuario"
+
+    except (ConnectionError, TimeoutError) as e:
+        error_message = f"Error de conexión al configurar webhook: {str(e)}"
+        presentation_service.show_error_message(error_message)
+
+        # Solicitar confirmación para reintento
+        if presentation_service.ask_for_retry("configuración del webhook"):
+            return configure_webhook(
+                base_url, webhook_endpoint, presentation_service, telegram_service
+            )  # Reintentar recursivamente
+
+        return False, error_message
+    except ValueError as e:
+        error_message = f"Error de valor al configurar webhook: {str(e)}"
+        presentation_service.show_error_message(error_message)
+
+        # Solicitar confirmación para reintento
+        if presentation_service.ask_for_retry("configuración del webhook"):
+            return configure_webhook(
+                base_url, webhook_endpoint, presentation_service, telegram_service
+            )  # Reintentar recursivamente
+
+        return False, error_message
+    except OSError as e:
+        error_message = f"Error del sistema al configurar webhook: {str(e)}"
+        presentation_service.show_error_message(error_message)
+
+        # Solicitar confirmación para reintento
+        if presentation_service.ask_for_retry("configuración del webhook"):
+            return configure_webhook(
+                base_url, webhook_endpoint, presentation_service, telegram_service
+            )  # Reintentar recursivamente
+
+        return False, error_message
 
 def process_update(update: dict) -> str | None:
     " Procesa un update de Telegram y retorna una respuesta si es necesario "

@@ -3,15 +3,16 @@ Path: run.py
 """
 
 import os
-import time
 import sys
 from fastapi import FastAPI
 from dotenv import load_dotenv
 import uvicorn
 from src.views.app_view import router as app_router
-from src.controllers.app_controller import configure_webhook
+from src.controllers.app_controller import configure_webhook, get_public_url
+from src.services.telegram_service import TelegramService
+from src.presentation.presentation_service import PresentationService
+from src.presentation.interface import Interface
 from utils.logging.dependency_injection import get_logger, is_verbose
-from src.services.presentation_service import PresentationService
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -28,32 +29,29 @@ app = FastAPI()
 # Incluir las rutas definidas en la vista
 app.include_router(app_router)
 
-def try_configure_webhook(max_retries=3, retry_delay=5):
-    """
-    Intenta configurar el webhook con reintentos
-    """
-    logger.info("Iniciando proceso de configuración del webhook...")
-    PresentationService.show_webhook_configuration_start()
-
-    for attempt in range(max_retries):
-        if attempt > 0:
-            logger.info("Reintento %d/%d", attempt + 1, max_retries)
-            PresentationService.show_webhook_retry_info(attempt, max_retries, retry_delay)
-            time.sleep(retry_delay)
-        else:
-            logger.info("Primer intento de configuración del webhook...")
-
-        success, error_message = configure_webhook()
-        if success:
-            PresentationService.show_webhook_configuration_success("configuración actual")
-            return True
-
-        PresentationService.show_webhook_configuration_failure(
-            error_message, attempt + 1, max_retries
-        )
-
-    PresentationService.show_webhook_all_attempts_failed()
-    return False
+def try_configure_webhook():
+    """Intenta configurar el webhook de Telegram"""
+    public_url, error = get_public_url()
+    if not public_url:
+        print(f"No se pudo obtener la URL pública: {error}")
+        return False
+    # Inicializar los servicios necesarios
+    local_interface = Interface()
+    local_presentation_service = PresentationService(local_interface)
+    telegram_service = TelegramService()
+    # Configurar el webhook
+    success, error_message = configure_webhook(
+        base_url=public_url,
+        webhook_endpoint="webhook",  # Ajusta esto según tu configuración
+        presentation_service=local_presentation_service,
+        telegram_service=telegram_service
+    )
+    if success:
+        print("Webhook configurado correctamente")
+        return True
+    else:
+        print(f"Error al configurar webhook: {error_message}")
+        return False
 
 def section(message):
     " Imprime un mensaje como una sección "
@@ -73,5 +71,7 @@ if __name__ == '__main__':
 
     # Iniciar el servidor con uvicorn
     port = int(os.getenv("PORT", "8000"))
-    PresentationService.show_server_start(port)
+    interface = Interface()
+    presentation_service = PresentationService(interface)
+    presentation_service.show_server_status(True, "0.0.0.0", port)
     uvicorn.run("run:app", host="0.0.0.0", port=port, reload=True)

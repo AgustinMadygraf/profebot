@@ -2,7 +2,7 @@
 Path: src/views/app_view.py
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from src.controllers.app_controller import process_update
 
 router = APIRouter()
@@ -19,3 +19,14 @@ async def telegram_webhook(request: Request):
         "status": "ok",
         "response": response_message if response_message else "No hay respuesta generada"
     }
+
+@router.post("/webhook")
+async def webhook(request: Request):
+    # Recibir el update de Telegram
+    try:
+        update = await request.json()
+        # Llamamos al controlador para procesar el update
+        response = process_update(update)
+        return {"status": "ok", "response": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
