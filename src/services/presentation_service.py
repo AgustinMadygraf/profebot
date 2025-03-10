@@ -49,7 +49,8 @@ class PresentationService:
             "[FALLO] El servidor iniciará, pero el bot podría no recibir mensajes.\n"
             "[SUGERENCIA] Acciones recomendadas:\n"
             "1. Verifique que TELEGRAM_TOKEN esté configurado correctamente\n"
-            "2. Configure PUBLIC_URL en el archivo .env o proporcione una URL pública válida cuando se solicite\n"
+            "2. Configure PUBLIC_URL en el archivo .env o proporcione una URL pública "
+            "válida cuando se solicite\n"
             "3. Asegúrese de que la URL sea accesible"
         )
         error(full_message)

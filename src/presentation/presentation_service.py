@@ -12,34 +12,49 @@ class PresentationService:
 
     def show_welcome_message(self):
         """Muestra el mensaje de bienvenida"""
-        self.interface.info("=====================")
-        self.interface.info("Bienvenido a MadyBot ")
-        self.interface.info("=====================")
+        self.interface.info("[INICIO] =====================")
+        self.interface.info("[INICIO] Bienvenido a MadyBot ")
+        self.interface.info("[INICIO] =====================")
 
     def show_server_status(self, is_running, host=None, port=None):
         """Muestra el estado del servidor"""
         if is_running:
-            self.interface.success(f"Servidor ejecutándose en http://{host}:{port}")
+            self.interface.success(f"[SERVIDOR] Ejecutándose en http://{host}:{port}")
         else:
-            self.interface.error("El servidor no está en ejecución")
+            self.interface.error(
+                "[SERVIDOR] El servidor no está en ejecución - Verifique los logs para más detalles"
+            )
 
     def show_webhook_status(self, is_set, details=None):
         """Muestra el estado del webhook"""
         if is_set:
-            self.interface.success(f"Webhook configurado correctamente: {details}")
+            self.interface.success(f"[WEBHOOK] Configurado correctamente: {details}")
         else:
-            self.interface.error("No se pudo configurar el webhook")
+            self.interface.error(
+                "[WEBHOOK] No se pudo configurar el webhook - "
+                "Verifique su conexión a internet y la URL proporcionada"
+            )
 
     def show_error_message(self, message):
-        """Muestra un mensaje de error"""
+        """Muestra un mensaje de error siguiendo la guía de estilo"""
+        # Agregar prefijo si no lo tiene
+        if not message.startswith("[ERROR]"):
+            message = f"[ERROR] {message}"
         self.interface.error(message)
 
     def show_warning_message(self, message):
-        """Muestra un mensaje de advertencia"""
-        self.interface.warn(message)
+        """Muestra un mensaje de advertencia siguiendo la guía de estilo"""
+        # Agregar prefijo si no lo tiene
+        if not message.startswith("[WARNING]"):
+            message = f"[WARNING] {message}"
+        # Cambiar método warn por warning para mantener consistencia
+        self.interface.warning(message)
 
     def show_debug_info(self, message):
-        """Muestra información de depuración"""
+        """Muestra información de depuración siguiendo la guía de estilo"""
+        # Agregar prefijo si no lo tiene
+        if not message.startswith("[DEBUG]"):
+            message = f"[DEBUG] {message}"
         self.interface.debug(message)
 
     def show_process_status(self, stage, is_complete):
@@ -48,7 +63,7 @@ class PresentationService:
         self.interface.info(f"{stage}: {status}")
 
     def request_confirmation(self, action_description):
-        """Solicita confirmación al usuario para una acción crítica
+        """Solicita confirmación al usuario para una acción crítica siguiendo la guía de estilo
         
         Args:
             action_description (str): Descripción de la acción a confirmar
@@ -56,6 +71,9 @@ class PresentationService:
         Returns:
             bool: True si el usuario confirmó, False en caso contrario
         """
+        # Agregar información de las consecuencias si no la tiene
+        if " - " not in action_description:
+            action_description += " - Esta acción podría tener consecuencias importantes"
         return self.interface.confirm_action(action_description)
 
     def ask_for_retry(self, operation_name):

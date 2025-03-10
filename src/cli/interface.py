@@ -4,8 +4,11 @@ Interfaz centralizada para interacción de línea de comandos.
 """
 
 from src.console.console_interface import UnifiedConsoleInterface
-# Modificamos la importación para hacerla directamente desde app_config en lugar de usar __init__.py
-from utils.config.app_config import get_config, set_verbose as config_set_verbose, set_colors as config_set_colors
+from utils.config.app_config import (
+    get_config,
+    set_verbose as config_set_verbose,
+    set_colors as config_set_colors,
+)
 
 class CLInterface:
     "Interfaz centralizada para interacción de línea de comandos."
