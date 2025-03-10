@@ -24,6 +24,9 @@ logger = get_logger()
 logger.debug("Argumentos de línea de comandos: %s", sys.argv)
 logger.debug("Modo verbose activo: %s", is_verbose())
 
+# Determinar el uso de colores basado en argumentos de línea de comandos
+use_colors = not "--no-colors" in sys.argv
+
 app = FastAPI()
 
 # Incluir las rutas definidas en la vista
@@ -73,7 +76,7 @@ if __name__ == '__main__':
 
     # Iniciar el servidor con uvicorn
     port = int(os.getenv("PORT", "8000"))
-    interface = Interface()
+    interface = Interface(use_colors=use_colors)  # Se pasa el parámetro use_colors
     presentation_service = PresentationService(interface)
     presentation_service.show_server_status(True, "0.0.0.0", port)
     uvicorn.run("run:app", host="0.0.0.0", port=port, reload=True)

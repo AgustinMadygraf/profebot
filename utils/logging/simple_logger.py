@@ -16,6 +16,7 @@ config = LoggerConfig()
 
 # Cache of loggers to avoid creating multiple instances
 _loggers: Dict[str, logging.Logger] = {}
+_initialized = False   # <--- Nuevo
 
 # Simple console formatter
 _formatter = logging.Formatter(
@@ -83,8 +84,7 @@ def get_logger(name: str = "profebot") -> logging.Logger:
     Returns:
         Configured logger instance
     """
-    global _loggers, VERBOSE_MODE, _initialized
-    global _loggers, config
+    global _loggers, _initialized, config  # Consolidado
     # Ensure system is initialized
     if not _initialized:
         initialize()
@@ -100,12 +100,11 @@ def get_logger(name: str = "profebot") -> logging.Logger:
     _clear_handlers(logger)
 
     # Set appropriate level based on verbose mode
-    logger.setLevel(logging.DEBUG if VERBOSE_MODE else logging.INFO)
     logger.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
+
     # Create console handler
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(_formatter)
-    handler.setLevel(logging.DEBUG if VERBOSE_MODE else logging.INFO)
     handler.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
 
     # Avoid duplicate messages in root logger
@@ -119,29 +118,28 @@ def initialize() -> None:
     """
     Initialize the logging system with command line arguments
     """
-    global _initialized, VERBOSE_MODE
+    global _initialized
     global config
 
     if config.initialized:
         return
 
     # Check if verbose mode is enabled via command line
-    VERBOSE_MODE = "--verbose" in sys.argv
     config.verbose_mode = "--verbose" in sys.argv
     # Reset all existing loggers and handlers
     logging.root.handlers = []  # Remove all handlers from the root logger
 
     # Configure root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG if VERBOSE_MODE else logging.INFO)
     root_logger.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
+
     # Clear existing handlers
     _clear_handlers(root_logger)
 
     # Add console handler to root logger
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(_formatter)
-    handler.setLevel(logging.DEBUG if VERBOSE_MODE else logging.INFO)
+    handler.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
     root_logger.addHandler(handler)
 
     # Mark as initialized
@@ -150,5 +148,5 @@ def initialize() -> None:
     # Get the main app logger
     main_logger = get_logger("profebot")
 
-    if VERBOSE_MODE:
+    if config.verbose_mode:
         main_logger.debug("Verbose mode enabled - debug messages will be displayed")

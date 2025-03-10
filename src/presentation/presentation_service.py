@@ -3,6 +3,7 @@ Path: src/presentation/presentation_service.py
 """
 
 from src.presentation.interface import Interface
+from src.cli.interface import get_input, info
 
 class PresentationService:
     " Servicio de presentación para mostrar mensajes al usuario "
@@ -74,8 +75,8 @@ class PresentationService:
         Args:
             operation_name (str): Nombre de la operación que se inicia
         """
-        # Se agrega un header estándar para mayor claridad
-        self.interface.info(f"[INICIANDO] {operation_name}...")
+        # Ahora el mensaje se transmite sin prefijo manual, se deja que la interfaz lo formatee
+        self.interface.info(f"{operation_name}...")
 
     def notify_operation_progress(self, operation_name, step, total_steps):
         """Notifica el progreso de una operación
@@ -86,3 +87,64 @@ class PresentationService:
             total_steps (int): Total de pasos
         """
         self.interface.info(f"{operation_name}: Paso {step} de {total_steps}")
+
+    @staticmethod
+    def ask_for_public_url():
+        """
+        Solicita al usuario la URL pública para el webhook.
+        
+        Returns:
+            str: URL proporcionada por el usuario
+        """
+        message = (
+            "Por favor, ingrese la URL pública temporal del servidor.\n"
+            "Ejemplo: https://abc123.ngrok.io\n"
+            "Nota: Asegúrese de incluir 'https://' al inicio"
+        )
+        info(message)  # Se muestra el mensaje consolidado
+        return get_input("URL pública: ").strip()
+
+    # Tarea 7: Ordenamiento y Centralización de mensajes de presentación
+    @staticmethod
+    def get_standard_templates():
+        """
+        Retorna un diccionario con plantillas estándar para mensajes.
+        Facilita la centralización de textos comunes.
+        """
+        return {
+            "welcome": "Bienvenido a MadyBot",
+            "webhook_success": "Webhook configurado correctamente: {details}",
+            "webhook_failure": "No se pudo configurar el webhook",
+            "server_running": "Servidor ejecutándose en http://{host}:{port}",
+            "server_stopped": "El servidor no está en ejecución",
+        }
+
+    # Tarea 8: Incremento de Flexibilidad para Futuras Ampliaciones
+    # Permite registrar y llamar plugins para extender la funcionalidad de presentación.
+    _plugins = {}
+
+    @classmethod
+    def register_plugin(cls, name: str, handler):
+        """
+        Registra un plugin de extensión para la presentación.
+
+        Args:
+            name (str): Nombre del plugin.
+            handler: Función o método que maneje la extensión.
+        """
+        cls._plugins[name] = handler
+
+    @classmethod
+    def call_plugin(cls, name: str, *args, **kwargs):
+        """
+        Llama al plugin registrado identificado por 'name'.
+
+        Args:
+            name (str): Nombre del plugin.
+        
+        Returns:
+            El resultado del plugin o None si no se encuentra.
+        """
+        if name in cls._plugins:
+            return cls._plugins[name](*args, **kwargs)
+        return None

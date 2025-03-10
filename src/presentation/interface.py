@@ -21,12 +21,20 @@ class Interface:
         self.console.success(message)
 
     def warn(self, message):
-        " Muestra un mensaje de advertencia en la consola."
-        self.console.warn(message)
+        " Muestra un mensaje de advertencia en la consola, incluyendo recomendaciones."
+        enhanced_message = message
+        if "webhook" in message.lower():
+            enhanced_message += " - Considere revisar la configuración del servidor o webhook."
+        self.console.warn(enhanced_message)
 
     def error(self, message):
-        " Muestra un mensaje de error en la consola."
-        self.console.error(message)
+        " Muestra un mensaje de error en la consola, agregando sugerencias si aplica."
+        enhanced_message = message
+        if "TELEGRAM_TOKEN" in message:
+            enhanced_message += " - Verifique que TELEGRAM_TOKEN esté configurado correctamente."
+        if "PUBLIC_URL" in message:
+            enhanced_message += " - Asegúrese de proporcionar una URL pública válida."
+        self.console.error(enhanced_message)
 
     def debug(self, message):
         " Muestra un mensaje de depuración en la consola."
@@ -34,7 +42,9 @@ class Interface:
 
     def confirm_action(self, question):
         " Pide confirmación al usuario para realizar una acción."
-        return self.console.confirm(question)
+        # Se agrega un mensaje aclaratorio antes de solicitar confirmación.
+        question_with_hint = f"{question}\n(Responda 's' para confirmar o 'n' para cancelar)"
+        return self.console.confirm(question_with_hint)
 
     def prompt_input(self, message):
         " Solicita al usuario una entrada de texto."

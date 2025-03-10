@@ -13,7 +13,7 @@ class UnifiedConsoleInterface:
 
     def info(self, message):
         "Muestra un mensaje informativo en la consola."
-        prefix = "[INFO] "
+        prefix = "[INFO]: "
         if self.use_colors:
             print(f"{Fore.CYAN}{prefix}{message}{Style.RESET_ALL}")
         else:
@@ -21,7 +21,7 @@ class UnifiedConsoleInterface:
 
     def success(self, message):
         "Muestra un mensaje de éxito en la consola."
-        prefix = "[SUCCESS] "
+        prefix = "[SUCCESS]: "
         if self.use_colors:
             print(f"{Fore.GREEN}{prefix}{message}{Style.RESET_ALL}")
         else:
@@ -29,7 +29,7 @@ class UnifiedConsoleInterface:
 
     def warn(self, message):
         "Muestra un mensaje de advertencia en la consola."
-        prefix = "[WARNING] "
+        prefix = "[WARNING]: "
         if self.use_colors:
             print(f"{Fore.YELLOW}{prefix}{message}{Style.RESET_ALL}")
         else:
@@ -37,7 +37,7 @@ class UnifiedConsoleInterface:
 
     def error(self, message):
         "Muestra un mensaje de error en la consola."
-        prefix = "[ERROR] "
+        prefix = "[ERROR]: "
         if self.use_colors:
             print(f"{Fore.RED}{prefix}{message}{Style.RESET_ALL}")
         else:
@@ -45,7 +45,7 @@ class UnifiedConsoleInterface:
 
     def debug(self, message):
         "Muestra un mensaje de depuración en la consola."
-        prefix = "[DEBUG] "
+        prefix = "[DEBUG]: "
         if self.use_colors:
             print(f"{Fore.MAGENTA}{prefix}{message}{Style.RESET_ALL}")
         else:
@@ -53,7 +53,7 @@ class UnifiedConsoleInterface:
 
     def confirm(self, question):
         "Pide confirmación al usuario para realizar una acción."
-        prefix = "[CONFIRM] "
+        prefix = "[CONFIRM]: "
         if self.use_colors:
             response = input(f"{Fore.BLUE}{prefix}{question} (s/n): {Style.RESET_ALL}")
         else:
@@ -65,7 +65,7 @@ class UnifiedConsoleInterface:
 
     def input(self, message):
         "Pide al usuario que ingrese un valor."
-        prefix = "[INPUT] "
+        prefix = "[INPUT]: "
         if self.use_colors:
             return input(f"{Fore.BLUE}{prefix}{message}: {Style.RESET_ALL}")
         else:

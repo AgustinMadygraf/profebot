@@ -40,9 +40,9 @@ class CLInterface:
 
     def section(self, title: str):
         " Muestra un título de sección en la consola."
-        print("\n[SECCIÓN] " + title.upper())
-        print("=" * (len(title) + 10))
-        print("\n")
+        # Se usa la interfaz unificada para tener formato y colores consistentes
+        self.console.info(f"[SECCIÓN] {title.upper()}")
+        self.console.info("=" * (len(title) + 10))
 
 # Singleton instance
 cli = CLInterface()
