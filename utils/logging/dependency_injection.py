@@ -22,9 +22,9 @@ _logger = get_logger("dependency_injection")
 
 # Log initialization information
 if verbose_mode:
-    _logger.debug("Verbose mode enabled from command line arguments")
+    _logger.debug("[VERBOSE] Verbose mode enabled from command line arguments")
 else:
-    _logger.info("Standard logging mode (use --verbose for debug messages)")
+    _logger.info("[INFO] Standard logging mode (use --verbose for debug messages)")
 
 # Import and configure CLI interface for colors
 try:
@@ -33,7 +33,7 @@ try:
     cli_set_verbose(verbose_mode)
 
     if no_colors:
-        _logger.info("Color output disabled (--no-colors)")
+        _logger.info("[INFO] Color output disabled (--no-colors)")
 except ImportError:
     _logger.debug("CLI interface not available - color settings not applied")
 

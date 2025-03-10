@@ -29,12 +29,12 @@ def get_public_url():
 
         if not public_url:
             error_msg = "No se proporcionó una URL"
-            PresentationService.show_message_send_error(error_msg)
+            PresentationService.show_message_send_error("[ERROR] " + error_msg)
             return None, error_msg
 
         if not public_url.startswith(("http://", "https://")):
             error_msg = "La URL debe comenzar con http:// o https://"
-            PresentationService.show_message_send_error(error_msg)
+            PresentationService.show_message_send_error("[ERROR] " + error_msg)
             return None, error_msg
 
         logger.info("URL proporcionada: %s", public_url)
@@ -42,15 +42,15 @@ def get_public_url():
 
     except KeyboardInterrupt:
         error_msg = "Operación cancelada por el usuario"
-        PresentationService.show_message_send_error(error_msg)
+        PresentationService.show_message_send_error("[ERROR] " + error_msg)
         return None, error_msg
     except ValueError as e:
         error_msg = f"Error de valor obteniendo la URL pública: {str(e)}"
-        PresentationService.show_message_send_error(error_msg)
+        PresentationService.show_message_send_error("[ERROR] " + error_msg)
         return None, error_msg
     except OSError as e:
         error_msg = f"Error del sistema obteniendo la URL pública: {str(e)}"
-        PresentationService.show_message_send_error(error_msg)
+        PresentationService.show_message_send_error("[ERROR] " + error_msg)
         return None, error_msg
 
 def configure_webhook(base_url, webhook_endpoint, presentation_service, telegram_service):

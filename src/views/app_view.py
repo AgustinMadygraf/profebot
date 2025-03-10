@@ -22,11 +22,11 @@ async def telegram_webhook(request: Request):
 
 @router.post("/webhook")
 async def webhook(request: Request):
-    # Recibir el update de Telegram
+    "Recibir el update de Telegram"
     try:
         update = await request.json()
         # Llamamos al controlador para procesar el update
         response = process_update(update)
         return {"status": "ok", "response": response}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

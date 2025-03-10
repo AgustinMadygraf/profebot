@@ -3,82 +3,39 @@ Path: src/presentation/interface.py
 """
 
 import colorama
-from colorama import Fore, Style
+from src.console.console_interface import UnifiedConsoleInterface
 
 class Interface:
     "Clase para mostrar mensajes en la consola con colores"
     def __init__(self, use_colors=True):
         colorama.init()
         self.use_colors = use_colors
+        self.console = UnifiedConsoleInterface(use_colors)
 
     def info(self, message):
-        """Mostrar un mensaje de información"""
-        prefix = "[INFO] "
-        if self.use_colors:
-            print(f"{Fore.CYAN}{prefix}{message}{Style.RESET_ALL}")
-        else:
-            print(f"{prefix}{message}")
+        " Muestra un mensaje informativo en la consola."
+        self.console.info(message)
 
     def success(self, message):
-        """Mostrar un mensaje de éxito"""
-        prefix = "[SUCCESS] "
-        if self.use_colors:
-            print(f"{Fore.GREEN}{prefix}{message}{Style.RESET_ALL}")
-        else:
-            print(f"{prefix}{message}")
+        " Muestra un mensaje de éxito en la consola."
+        self.console.success(message)
 
     def warn(self, message):
-        """Mostrar un mensaje de advertencia"""
-        prefix = "[WARNING] "
-        if self.use_colors:
-            print(f"{Fore.YELLOW}{prefix}{message}{Style.RESET_ALL}")
-        else:
-            print(f"{prefix}{message}")
+        " Muestra un mensaje de advertencia en la consola."
+        self.console.warn(message)
 
     def error(self, message):
-        """Mostrar un mensaje de error"""
-        prefix = "[ERROR] "
-        if self.use_colors:
-            print(f"{Fore.RED}{prefix}{message}{Style.RESET_ALL}")
-        else:
-            print(f"{prefix}{message}")
+        " Muestra un mensaje de error en la consola."
+        self.console.error(message)
 
     def debug(self, message):
-        """Mostrar un mensaje de depuración"""
-        prefix = "[DEBUG] "
-        if self.use_colors:
-            print(f"{Fore.MAGENTA}{prefix}{message}{Style.RESET_ALL}")
-        else:
-            print(f"{prefix}{message}")
+        " Muestra un mensaje de depuración en la consola."
+        self.console.debug(message)
 
     def confirm_action(self, question):
-        """Solicita confirmación al usuario para una acción crítica
-        
-        Args:
-            question (str): Pregunta a realizar al usuario
-            
-        Returns:
-            bool: True si el usuario confirmó, False en caso contrario
-        """
-        prefix = "[CONFIRM] "
-        if self.use_colors:
-            response = input(f"{Fore.BLUE}{prefix}{question} (s/n): {Style.RESET_ALL}")
-        else:
-            response = input(f"{prefix}{question} (s/n): ")
-
-        return response.lower().startswith('s')
+        " Pide confirmación al usuario para realizar una acción."
+        return self.console.confirm(question)
 
     def prompt_input(self, message):
-        """Solicita entrada de texto al usuario
-        
-        Args:
-            message (str): Mensaje a mostrar al usuario
-            
-        Returns:
-            str: Texto ingresado por el usuario
-        """
-        prefix = "[INPUT] "
-        if self.use_colors:
-            return input(f"{Fore.BLUE}{prefix}{message}: {Style.RESET_ALL}")
-        else:
-            return input(f"{prefix}{message}: ")
+        " Solicita al usuario una entrada de texto."
+        return self.console.input(message)

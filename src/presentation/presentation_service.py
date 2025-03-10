@@ -74,7 +74,8 @@ class PresentationService:
         Args:
             operation_name (str): Nombre de la operación que se inicia
         """
-        self.interface.info(f"Iniciando: {operation_name}...")
+        # Se agrega un header estándar para mayor claridad
+        self.interface.info(f"[INICIANDO] {operation_name}...")
 
     def notify_operation_progress(self, operation_name, step, total_steps):
         """Notifica el progreso de una operación

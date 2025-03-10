@@ -7,11 +7,12 @@ import logging
 import sys
 from typing import Dict
 
-# Global verbose flag
-VERBOSE_MODE = False
+class LoggerConfig:
+    " Configuration for the logging system "
+    verbose_mode = False
+    initialized = False
 
-# Initialization flag to avoid multiple initializations
-_initialized = False
+config = LoggerConfig()
 
 # Cache of loggers to avoid creating multiple instances
 _loggers: Dict[str, logging.Logger] = {}
@@ -21,7 +22,7 @@ _formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-def set_verbose(enabled: bool = True, verbose_mode: bool = VERBOSE_MODE) -> bool:
+def set_verbose(enabled: bool = True) -> bool:
     """
     Enable or disable verbose mode (debug messages)
     
@@ -32,7 +33,7 @@ def set_verbose(enabled: bool = True, verbose_mode: bool = VERBOSE_MODE) -> bool
     Returns:
         Updated state of verbose mode
     """
-    verbose_mode = enabled
+    config.verbose_mode = enabled
 
     # Update all existing loggers
     root_level = logging.DEBUG if enabled else logging.INFO
@@ -60,8 +61,7 @@ def is_verbose() -> bool:
     Returns:
         True if verbose mode is enabled, False otherwise
     """
-    return VERBOSE_MODE
-
+    return config.verbose_mode
 def _clear_handlers(logger: logging.Logger) -> None:
     """
     Remove all handlers from a logger
@@ -84,7 +84,7 @@ def get_logger(name: str = "profebot") -> logging.Logger:
         Configured logger instance
     """
     global _loggers, VERBOSE_MODE, _initialized
-
+    global _loggers, config
     # Ensure system is initialized
     if not _initialized:
         initialize()
@@ -101,12 +101,12 @@ def get_logger(name: str = "profebot") -> logging.Logger:
 
     # Set appropriate level based on verbose mode
     logger.setLevel(logging.DEBUG if VERBOSE_MODE else logging.INFO)
-
+    logger.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
     # Create console handler
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(_formatter)
     handler.setLevel(logging.DEBUG if VERBOSE_MODE else logging.INFO)
-    logger.addHandler(handler)
+    handler.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
 
     # Avoid duplicate messages in root logger
     logger.propagate = False
@@ -120,20 +120,21 @@ def initialize() -> None:
     Initialize the logging system with command line arguments
     """
     global _initialized, VERBOSE_MODE
+    global config
 
-    if _initialized:
+    if config.initialized:
         return
 
     # Check if verbose mode is enabled via command line
     VERBOSE_MODE = "--verbose" in sys.argv
-
+    config.verbose_mode = "--verbose" in sys.argv
     # Reset all existing loggers and handlers
     logging.root.handlers = []  # Remove all handlers from the root logger
 
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG if VERBOSE_MODE else logging.INFO)
-
+    root_logger.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
     # Clear existing handlers
     _clear_handlers(root_logger)
 
@@ -145,7 +146,7 @@ def initialize() -> None:
 
     # Mark as initialized
     _initialized = True
-
+    config.initialized = True
     # Get the main app logger
     main_logger = get_logger("profebot")
 

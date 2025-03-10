@@ -31,9 +31,10 @@ class PresentationService:
     def show_webhook_configuration_failure(error_message: str, attempt: int, max_attempts: int):
         """Muestra mensaje de fallo en la configuración del webhook."""
         if attempt < max_attempts:
-            warning("Intento %d/%d fallido: %s", attempt, max_attempts, error_message)
+            warning("[REINTENTO] Intento %d/%d fallido: %s", attempt, max_attempts, error_message)
         else:
-            error("Último intento (%d/%d) fallido: %s", attempt, max_attempts, error_message)
+            error("[FINAL] Último intento (%d/%d) fallido: %s",
+                  attempt, max_attempts, error_message)
 
     @staticmethod
     def show_webhook_retry_info(attempt: int, max_attempts: int, delay: int):
@@ -43,9 +44,9 @@ class PresentationService:
     @staticmethod
     def show_webhook_all_attempts_failed():
         """Muestra mensaje cuando todos los intentos de configuración han fallado."""
-        error("No se pudo configurar el webhook después de varios intentos.")
-        error("El servidor iniciará, pero el bot podría no recibir mensajes.")
-        error("Acciones recomendadas:")
+        error("[FALLO] No se pudo configurar el webhook después de varios intentos.")
+        error("[FALLO] El servidor iniciará, pero el bot podría no recibir mensajes.")
+        error("[SUGERENCIA] Acciones recomendadas:")
         error("1. Verifique que TELEGRAM_TOKEN está configurado correctamente")
         error("2. Configure PUBLIC_URL en el archivo .env o")
         error("   Proporcione una URL pública válida cuando se solicite")
@@ -75,7 +76,7 @@ class PresentationService:
     def show_response_generated(response: str):
         """Muestra información sobre la respuesta generada."""
         info("Respuesta generada:")
-        debug(response)
+        info(response)
 
     @staticmethod
     def show_message_sent(chat_id: int):

@@ -59,6 +59,8 @@ def section(message):
 
 if __name__ == '__main__':
     section("Iniciando ProfeBot")
+    # Se agrega indicación de progreso
+    print("[PROCESO] Configurando webhook, por favor espere...")
 
     # Estos logs son para demostrar los diferentes niveles
     logger.debug("Este mensaje solo aparece en modo verbose")
