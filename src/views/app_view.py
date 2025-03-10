@@ -10,7 +10,7 @@ blueprint = Blueprint('app', __name__)
 @blueprint.route("/", methods=["POST"])
 def telegram_webhook():
     """Procesa un update de Telegram y retorna una respuesta"""
-    update = request.get_json()  # Obtener el JSON de la solicitud
+    update = request.get_json()
     response_message = process_update(update)
     return jsonify({
         "status": "ok",
@@ -24,5 +24,5 @@ def webhook():
         update = request.get_json()
         response = process_update(update)
         return jsonify({"status": "ok", "response": response})
-    except Exception as e:
+    except (ValueError, KeyError, TypeError) as e:
         return jsonify({"status": "error", "detail": str(e)}), 500

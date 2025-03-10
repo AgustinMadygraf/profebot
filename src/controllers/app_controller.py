@@ -6,10 +6,22 @@ Controlador de la aplicación que maneja las solicitudes.
 from src.utils.logging.dependency_injection import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
-from src.services.presentation_service import PresentationService
+from src.presentation.presentation_service import PresentationService
+from src.presentation.interface import Interface
 
 # Initialize logger
 logger = get_logger("app_controller")
+
+# Se crea una instancia con una interfaz por defecto (sin colores)
+default_interface = Interface(use_colors=False)
+presentation_service = PresentationService(default_interface)
+
+# ANALYSIS:
+# - Este módulo usa PresentationService (instancia "presentation_service") para:
+#    • Mostrar errores (show_message_send_error)
+#    • Indicar el procesamiento de updates (show_update_processing)
+#    • Mostrar respuestas generadas (show_response_generated)
+#    • Notificar envío de mensajes (show_message_sent)
 
 def validate_telegram_token() -> bool:
     """
@@ -17,7 +29,7 @@ def validate_telegram_token() -> bool:
     """
     valid, error_msg = TelegramService.validate_token()
     if not valid:
-        PresentationService.show_message_send_error(error_msg)
+        presentation_service.show_message_send_error(error_msg)
         return False
     return True
 
@@ -29,12 +41,12 @@ def get_public_url():
 
         if not public_url:
             error_msg = "No se proporcionó una URL"
-            PresentationService.show_message_send_error(error_msg)
+            presentation_service.show_message_send_error(error_msg)
             return None, error_msg
 
         if not public_url.startswith(("http://", "https://")):
             error_msg = "La URL debe comenzar con http:// o https://"
-            PresentationService.show_message_send_error(error_msg)
+            presentation_service.show_message_send_error(error_msg)
             return None, error_msg
 
         logger.info("URL proporcionada: %s", public_url)
@@ -42,15 +54,15 @@ def get_public_url():
 
     except KeyboardInterrupt:
         error_msg = "Operación cancelada por el usuario"
-        PresentationService.show_message_send_error(error_msg)
+        presentation_service.show_message_send_error(error_msg)
         return None, error_msg
     except ValueError as e:
         error_msg = f"Error de valor obteniendo la URL pública: {str(e)}"
-        PresentationService.show_message_send_error(error_msg)
+        presentation_service.show_message_send_error(error_msg)
         return None, error_msg
     except OSError as e:
         error_msg = f"Error del sistema obteniendo la URL pública: {str(e)}"
-        PresentationService.show_message_send_error(error_msg)
+        presentation_service.show_message_send_error(error_msg)
         return None, error_msg
 
 
@@ -59,7 +71,7 @@ def process_update(update: dict) -> str | None:
     logger.info("Procesando update")
 
     # Usar el servicio de presentación
-    PresentationService.show_update_processing(update)
+    presentation_service.show_update_processing(update)
 
     # Usar el servicio para parsear el update
     telegram_update = TelegramService.parse_update(update)
@@ -74,7 +86,7 @@ def process_update(update: dict) -> str | None:
 
     if response:
         logger.info("Respuesta generada")
-        PresentationService.show_response_generated(response)
+        presentation_service.show_response_generated(response)
         send_message(telegram_update, response)
         return response
     else:
@@ -90,7 +102,7 @@ def send_message(telegram_update: TelegramUpdate, text: str) -> None:
     chat = telegram_update.message.get("chat") if telegram_update.message else None
     if not (chat and "id" in chat):
         logger.error("chat_id no encontrado en el update.")
-        PresentationService.show_message_send_error("chat_id no encontrado en el update")
+        presentation_service.show_message_send_error("chat_id no encontrado en el update")
         return
 
     chat_id = chat["id"]
@@ -100,6 +112,6 @@ def send_message(telegram_update: TelegramUpdate, text: str) -> None:
     success, error_msg = TelegramService.send_message(chat_id, text)
 
     if success:
-        PresentationService.show_message_sent(chat_id)
+        presentation_service.show_message_sent(chat_id)
     else:
-        PresentationService.show_message_send_error(error_msg)
+        presentation_service.show_message_send_error(error_msg)
