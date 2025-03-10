@@ -11,7 +11,7 @@ class InfoErrorFilter(logging.Filter):
     Filtro que solo permite mensajes de nivel INFO y ERROR.
     Útil para separar flujos de log según su importancia.
     """
-    
+
     def filter(self, record):
         """
         Implementación del método filter.
