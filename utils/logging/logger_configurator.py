@@ -131,7 +131,7 @@ class LoggerConfigurator:
                                 handler_config['level'] = 'INFO'
 
                 # Ajustar nivel del logger raíz si existe
-                if ('root' in config and 'level' in config['root'] and 
+                if ('root' in config and 'level' in config['root'] and
                         config['root']['level'] == 'DEBUG'):
                     config['root']['level'] = 'INFO'
 
@@ -152,7 +152,7 @@ class LoggerConfigurator:
 
             # Registrar en LoggerFactory para acceso global
             LoggerFactory.set_default_logger(logger)
-            
+
             # Este mensaje solo se verá si DEBUG está activado después de la configuración
             logger.debug("Logger inicializado desde configuración JSON")
 
@@ -458,11 +458,12 @@ class LoggerConfigurator:
         # Si el modo verbose está activado, añadimos información extra
         if DEBUG_VERBOSE:
             # Obtener información del llamador
-            caller_frame = sys._getframe(1)
+            import inspect
+            caller_frame = inspect.currentframe().f_back
             filename = os.path.basename(caller_frame.f_code.co_filename)
             lineno = caller_frame.f_lineno
             caller_info = f"[{filename}:{lineno}]"
-            
+
             # Añadir información del llamador al mensaje
             enhanced_message = f"{caller_info} {message}"
             logger.debug(enhanced_message, *args, **kwargs)
@@ -496,23 +497,23 @@ def set_debug_verbose(enabled: bool = True) -> None:
     """
     global DEBUG_VERBOSE
     DEBUG_VERBOSE = enabled
-    
+
     # Obtener un logger para registrar el cambio
     logger = get_logger("logging_system")
-    
+
     # Establecer el nivel apropiado en el logger raíz y todos los handlers
     root_logger = logging.getLogger()
     level = logging.DEBUG if enabled else logging.INFO
-    
+
     # Cambiar nivel del logger raíz
     root_logger.setLevel(level)
-    
+
     # Cambiar nivel de todos los handlers del logger raíz
     for handler in root_logger.handlers:
         # Solo cambiar el nivel en handlers que no son específicos para errores
         if handler.level < logging.ERROR:
             handler.setLevel(level)
-    
+
     level_str = "ACTIVADO" if enabled else "DESACTIVADO"
     logger.info(f"Modo DEBUG_VERBOSE {level_str}, nivel de logging: {logging.getLevelName(level)}")
 

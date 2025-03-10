@@ -8,9 +8,8 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 from src.views.app_view import router as app_router
 from src.controllers.app_controller import configure_webhook
-from utils.logging.dependency_injection import get_logger
-# Importar directamente de interface en lugar de src.cli
 from src.cli.interface import info, debug, error, warning, section
+from utils.logging.dependency_injection import get_logger
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -27,7 +26,7 @@ def try_configure_webhook(max_retries=3, retry_delay=5):
     Intenta configurar el webhook con reintentos
     """
     info("Iniciando proceso de configuración del webhook...")
-    
+
     for attempt in range(max_retries):
         if attempt > 0:
             warning("Reintento %d/%d de configuración del webhook...", attempt + 1, max_retries)
@@ -43,7 +42,7 @@ def try_configure_webhook(max_retries=3, retry_delay=5):
         if attempt < max_retries - 1:
             warning("Intento %d fallido: %s", attempt + 1, error_message)
         else:
-            error("Último intento (%d/%d) fallido: %s", 
+            error("Último intento (%d/%d) fallido: %s",
                   max_retries, max_retries, error_message)
 
     return False
@@ -51,7 +50,7 @@ def try_configure_webhook(max_retries=3, retry_delay=5):
 if __name__ == '__main__':
     section("Iniciando ProfeBot")
     debug("Cargando configuración...")
-    
+
     # Configurar el webhook de Telegram con reintentos
     section("Configuración del webhook")
     if not try_configure_webhook():
@@ -62,7 +61,7 @@ if __name__ == '__main__':
         error("2. Configure PUBLIC_URL en el archivo .env o")
         error("   Proporcione una URL pública válida cuando se solicite")
         error("3. Asegúrese de que la URL sea accesible")
-    
+
     # Iniciar el servidor con uvicorn
     section("Iniciando servidor Web")
     import uvicorn

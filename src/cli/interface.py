@@ -4,8 +4,7 @@ Interfaz centralizada para interacción de línea de comandos.
 """
 
 import logging
-import sys
-from typing import Optional, Any
+from typing import Optional
 
 # Definiciones de colores ANSI para la consola
 class Colors:
@@ -14,7 +13,7 @@ class Colors:
     BOLD = "\033[1m"
     DIM = "\033[2m"
     UNDERLINE = "\033[4m"
-    
+
     # Colores de texto
     BLACK = "\033[30m"
     RED = "\033[31m"
@@ -24,7 +23,7 @@ class Colors:
     MAGENTA = "\033[35m"
     CYAN = "\033[36m"
     WHITE = "\033[37m"
-    
+
     # Colores de fondo
     BG_BLACK = "\033[40m"
     BG_RED = "\033[41m"
@@ -34,7 +33,7 @@ class Colors:
     BG_MAGENTA = "\033[45m"
     BG_CYAN = "\033[46m"
     BG_WHITE = "\033[47m"
-    
+
     @classmethod
     def disabled(cls):
         """Deshabilita todos los colores estableciéndolos a cadenas vacías."""
@@ -49,12 +48,12 @@ class CLInterface:
         self.verbose = verbose
         self.use_colors = use_colors
         self.logger = logging.getLogger('profebot.cli')
-        
+
         # Deshabilitamos colores si no se solicitan
         if not use_colors:
             Colors.disabled()
 
-    def format_message(self, level: str, message: str, *args, **kwargs) -> str:
+    def format_message(self, level: str, message: str, *args) -> str:
         """
         Formatea un mensaje para mostrar en la consola según su nivel.
         
@@ -73,7 +72,7 @@ class CLInterface:
             except (TypeError, ValueError) as e:
                 # Si hay un error de formato, mostrar mensaje original
                 message = f"{message} (Error de formato: {e})"
-        
+
         # Aplicar formato según el nivel
         if level == "INFO":
             prefix = f"{Colors.GREEN}{Colors.BOLD}INFO:{Colors.RESET} "
@@ -85,7 +84,7 @@ class CLInterface:
             prefix = f"{Colors.BLUE}{Colors.BOLD}DEBUG:{Colors.RESET} "
         else:
             prefix = f"{level}: "
-            
+
         return f"{prefix}{message}"
 
     def info(self, message: str, *args, **kwargs):
@@ -116,7 +115,14 @@ class CLInterface:
     def confirm(self, message: str, default: bool = True) -> bool:
         """Ask for user confirmation."""
         prompt = f"{Colors.CYAN}{message}{Colors.RESET}"
-        options = f" [{Colors.GREEN}Y{Colors.RESET}/{Colors.RED}n{Colors.RESET}]: " if default else f" [{Colors.GREEN}y{Colors.RESET}/{Colors.RED}N{Colors.RESET}]: "
+        if default:
+            options = (
+                f" [{Colors.GREEN}Y{Colors.RESET}/{Colors.RED}n{Colors.RESET}]: "
+            )
+        else:
+            options = (
+                f" [{Colors.GREEN}y{Colors.RESET}/{Colors.RED}N{Colors.RESET}]: "
+            )
         response = input(prompt + options)
         if not response:
             return default
@@ -128,7 +134,7 @@ class CLInterface:
         if default:
             prompt += f" [{Colors.YELLOW}{default}{Colors.RESET}]: "
         else:
-            prompt += f": "
+            prompt += ": "
         response = input(prompt)
         return response if response else default or ""
 
