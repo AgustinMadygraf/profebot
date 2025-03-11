@@ -6,6 +6,7 @@ from src.presentation.presentation_service import PresentationService
 from src.presentation.interface import Interface
 from src.utils.logging.dependency_injection import get_logger
 from src.configuration.webhook_configurator import WebhookConfigurator
+from src.utils.error_handler import log_error, log_info
 
 # Initialize logger
 logger = get_logger("app_controller")
@@ -19,7 +20,12 @@ def try_configure_webhook(use_colors):
     configurator = WebhookConfigurator(use_colors)
     success = configurator.try_configure_webhook()
     if success:
-        configurator.presentation_service.show_debug_info("Webhook configurado correctamente")
+        log_info(configurator.presentation_service, logger, "Webhook configurado correctamente")
     else:
-        configurator.presentation_service.show_error_message("Error al configurar webhook")
+        log_error(
+            configurator.presentation_service,
+            logger,
+            "Error en la configuración del webhook", 
+            "Webhook configuration failed"
+        )
     return success

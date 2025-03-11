@@ -13,6 +13,7 @@ from src.presentation.interface import Interface
 from src.cli.interface import section
 from src.utils.logging.dependency_injection import get_logger
 from src.utils.config.app_config import is_verbose, should_use_colors
+from src.utils.error_handler import log_error, log_info
 
 def create_app() -> Flask:
     """Crea y configura la aplicación Flask"""
@@ -52,4 +53,9 @@ def main():
         logger.info("[PRUEBAS] El webhook fue configurado correctamente.")
     else:
         logger.error("[PRUEBAS] Falló la configuración del webhook. Revise la salida y los logs.")
-    app.run(host="0.0.0.0", port=port, debug=True)
+    try:
+        app.run(host="0.0.0.0", port=port, debug=True)
+    except (OSError, RuntimeError) as e:
+        log_error(presentation_service, logger, "Error en la ejecución del servidor", e)
+    finally:
+        log_info(presentation_service, logger, "El servidor se ha detenido")

@@ -1,6 +1,7 @@
 """
 Path: src/presentation/presentation_service.py
 """
+
 from src.cli.interface import get_input
 
 class PresentationService:
@@ -95,7 +96,6 @@ class PresentationService:
         """
         return get_input("Introduzca la URL pública para el webhook: ")
 
-    # Tarea 7: Ordenamiento y Centralización de mensajes de presentación
     @staticmethod
     def get_standard_templates():
         """
@@ -110,8 +110,6 @@ class PresentationService:
             "server_stopped": "El servidor no está en ejecución",
         }
 
-    # Tarea 8: Incremento de Flexibilidad para Futuras Ampliaciones
-    # Permite registrar y llamar plugins para extender la funcionalidad de presentación.
     _plugins = {}
 
     @classmethod
@@ -198,12 +196,14 @@ class PresentationService:
         " Muestra un mensaje de éxito al enviar un mensaje a un chat de Telegram "
         self.interface.info(f"Mensaje enviado correctamente al chat_id: {chat_id}")
 
-    def show_message_send_error(self, message):
-        " Muestra un mensaje de error al enviar un mensaje a un chat de Telegram "
-        self.interface.display_error(message)
-
     def show_server_start(self, port: int):
         " Muestra un mensaje de inicio del servidor web "
         self.interface.section("Iniciando servidor Web")
         self.interface.info(f"Servidor configurado en el puerto {port}")
         self.interface.info("Presione Ctrl+C para detener")
+
+def custom_greeting_plugin(message):
+    "Plugin de ejemplo que muestra un saludo personalizado"
+    return f"Mensaje customizado: {message}"
+
+PresentationService.register_plugin("custom_greeting", custom_greeting_plugin)
