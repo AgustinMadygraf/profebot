@@ -45,5 +45,11 @@ def main():
     interface = Interface(use_colors=use_colors)
     presentation_service = PresentationService(interface)
     presentation_service.show_server_status(True, "0.0.0.0", port)
-    try_configure_webhook(use_colors)
+    configure_success = try_configure_webhook(use_colors)
+    # TAREA 5: VERIFICACIÓN MANUAL DE LA INTEGRACIÓN
+    logger.info("[PRUEBAS] Verificando integración de PresentationService...")
+    if configure_success:
+        logger.info("[PRUEBAS] El webhook fue configurado correctamente.")
+    else:
+        logger.error("[PRUEBAS] Falló la configuración del webhook. Revise la salida y los logs.")
     app.run(host="0.0.0.0", port=port, debug=True)

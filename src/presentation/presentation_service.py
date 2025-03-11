@@ -1,13 +1,11 @@
 """
 Path: src/presentation/presentation_service.py
 """
-
-from src.presentation.interface import Interface
-from src.cli.interface import get_input, info
+from src.cli.interface import get_input
 
 class PresentationService:
-    " Servicio de presentación para mostrar mensajes al usuario "
-    def __init__(self, interface: Interface):
+    "Clase que maneja la presentación de mensajes en la interfaz de usuario"
+    def __init__(self, interface):
         self.interface = interface
 
     def show_welcome_message(self):
@@ -16,46 +14,29 @@ class PresentationService:
         self.interface.info("[INICIO] Bienvenido a MadyBot ")
         self.interface.info("[INICIO] =====================")
 
-    def show_server_status(self, is_running, host=None, port=None):
+    def show_server_status(self, status, host, port):
         """Muestra el estado del servidor"""
-        if is_running:
-            self.interface.success(f"[SERVIDOR] Ejecutándose en http://{host}:{port}")
-        else:
-            self.interface.error(
-                "[SERVIDOR] El servidor no está en ejecución - Verifique los logs para más detalles"
-            )
+        status_str = "activo" if status else "inactivo"
+        self.interface.info(f"Servidor {status_str} en {host}:{port}")
 
-    def show_webhook_status(self, is_set, details=None):
+    def show_webhook_status(self, success, webhook_url=None):
         """Muestra el estado del webhook"""
-        if is_set:
-            self.interface.success(f"[WEBHOOK] Configurado correctamente: {details}")
+        if success:
+            self.interface.info(f"Webhook configurado en: {webhook_url}")
         else:
-            self.interface.error(
-                "[WEBHOOK] No se pudo configurar el webhook - "
-                "Verifique su conexión a internet y la URL proporcionada"
-            )
+            self.interface.info("La configuración del webhook falló.")
 
     def show_error_message(self, message):
         """Muestra un mensaje de error siguiendo la guía de estilo"""
-        # Agregar prefijo si no lo tiene
-        if not message.startswith("[ERROR]"):
-            message = f"[ERROR] {message}"
-        self.interface.error(message)
+        self.interface.display_error(message)
 
     def show_warning_message(self, message):
         """Muestra un mensaje de advertencia siguiendo la guía de estilo"""
-        # Agregar prefijo si no lo tiene
-        if not message.startswith("[WARNING]"):
-            message = f"[WARNING] {message}"
-        # Cambiar método warn por warning para mantener consistencia
-        self.interface.warning(message)
+        self.interface.display_warning(message)
 
     def show_debug_info(self, message):
         """Muestra información de depuración siguiendo la guía de estilo"""
-        # Agregar prefijo si no lo tiene
-        if not message.startswith("[DEBUG]"):
-            message = f"[DEBUG] {message}"
-        self.interface.debug(message)
+        self.interface.info(f"DEBUG: {message}")
 
     def show_process_status(self, stage, is_complete):
         """Muestra el estado de un proceso"""
@@ -76,16 +57,16 @@ class PresentationService:
             action_description += " - Esta acción podría tener consecuencias importantes"
         return self.interface.confirm_action(action_description)
 
-    def ask_for_retry(self, operation_name):
+    def ask_for_retry(self, context):
         """Pregunta al usuario si desea reintentar una operación
         
         Args:
-            operation_name (str): Nombre de la operación que falló
+            context (str): Contexto de la operación que falló
             
         Returns:
             bool: True si el usuario desea reintentar, False en caso contrario
         """
-        return self.interface.confirm_action(f"¿Desea reintentar {operation_name}?")
+        return self.interface.prompt_retry(context)
 
     def notify_operation_start(self, operation_name):
         """Notifica el inicio de una operación
@@ -93,8 +74,7 @@ class PresentationService:
         Args:
             operation_name (str): Nombre de la operación que se inicia
         """
-        # Ahora el mensaje se transmite sin prefijo manual, se deja que la interfaz lo formatee
-        self.interface.info(f"{operation_name}...")
+        self.interface.info(f"Iniciando: {operation_name}")
 
     def notify_operation_progress(self, operation_name, step, total_steps):
         """Notifica el progreso de una operación
@@ -106,21 +86,14 @@ class PresentationService:
         """
         self.interface.info(f"{operation_name}: Paso {step} de {total_steps}")
 
-    @staticmethod
-    def ask_for_public_url():
+    def ask_for_public_url(self):
         """
         Solicita al usuario la URL pública para el webhook.
         
         Returns:
             str: URL proporcionada por el usuario
         """
-        message = (
-            "Por favor, ingrese la URL pública temporal del servidor.\n"
-            "Ejemplo: https://abc123.ngrok.io\n"
-            "Nota: Asegúrese de incluir 'https://' al inicio"
-        )
-        info(message)  # Se muestra el mensaje consolidado
-        return get_input("URL pública: ").strip()
+        return get_input("Introduzca la URL pública para el webhook: ")
 
     # Tarea 7: Ordenamiento y Centralización de mensajes de presentación
     @staticmethod
@@ -225,9 +198,9 @@ class PresentationService:
         " Muestra un mensaje de éxito al enviar un mensaje a un chat de Telegram "
         self.interface.info(f"Mensaje enviado correctamente al chat_id: {chat_id}")
 
-    def show_message_send_error(self, error_msg: str):
+    def show_message_send_error(self, message):
         " Muestra un mensaje de error al enviar un mensaje a un chat de Telegram "
-        self.interface.error(f"Error al enviar mensaje: {error_msg}")
+        self.interface.display_error(message)
 
     def show_server_start(self, port: int):
         " Muestra un mensaje de inicio del servidor web "
