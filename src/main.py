@@ -11,21 +11,24 @@ from src.views.app_view import blueprint as app_blueprint
 from src.presentation.presentation_service import PresentationService
 from src.presentation.interface import Interface
 from src.cli.interface import section
-from src.utils.logging.dependency_injection import get_logger
-from src.utils.config.app_config import is_verbose, should_use_colors
+from src.utils.logging.dependency_injection import get_injected_logger
 from src.utils.error_handler import log_error, log_info
+from src.utils.config.app_config import get_config
 
 def create_app() -> Flask:
     """Crea y configura la aplicación Flask"""
     # Cargar las variables de entorno desde el archivo .env
     load_dotenv()
 
-    # Obtener el logger simplificado
-    logger = get_logger()
+    # Obtener la instancia de configuración de forma explícita
+    config_instance = get_config()
 
+    # Obtener el logger inyectado usando la configuración inyectada
+    logger = get_injected_logger("main", config_override=config_instance)
+    
     # Información de debugging
     logger.debug("Argumentos de línea de comandos: %s", sys.argv)
-    logger.debug("Modo verbose activo: %s", is_verbose())
+    logger.debug("Modo verbose activo: %s", config_instance.verbose_mode)
 
     app = Flask(__name__)
 
@@ -38,10 +41,13 @@ def create_app() -> Flask:
 def main():
     "Punto de entrada principal de la aplicación"
     section("Iniciando ProfeBot")
-    logger = get_logger()
+    # Obtener explícitamente la configuración para inyección
+    config_instance = get_config()
+    logger = get_injected_logger("main", config_override=config_instance)
     logger.info("[PROCESO] Configurando webhook, por favor espere...")
     app = create_app()
-    use_colors = should_use_colors()
+    # Uso explícito de la configuración inyectada
+    use_colors = config_instance.use_colors
     port = int(os.getenv("PORT", "8000"))
     interface = Interface(use_colors=use_colors)
     presentation_service = PresentationService(interface)

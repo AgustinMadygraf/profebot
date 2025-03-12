@@ -18,9 +18,9 @@ config = get_config()
 verbose_mode = "--verbose" in sys.argv
 no_colors = "--no-colors" in sys.argv
 
-# Actualizar configuracion central sin duplicado
-config.verbose_mode = verbose_mode
-config.use_colors = not no_colors
+# Actualizar configuración central utilizando el API de AppConfig
+config.set("verbose_mode", verbose_mode)
+config.set("use_colors", not no_colors)
 
 # Get a logger for this module
 _logger = get_logger("dependency_injection")
@@ -53,5 +53,35 @@ def log_debug(message, *args, **kwargs):
     """For backward compatibility"""
     get_logger().debug(message, *args, **kwargs)
 
+def get_injected_logger(name: str, config_override=None):
+    """Retorna un logger configurado usando una instancia de configuración inyectada.
+    Si se provee 'config_override', se usará esa instancia en vez de la configuración global.
+    """
+    config_instance = config_override if config_override is not None else get_config()
+    # Se asume que 'get_logger' utiliza internamente la configuración
+    return get_logger(name)
+
+# Nueva función para inyección explícita de dependencias
+def inject_dependencies(config_override=None) -> dict:
+    """
+    Devuelve un diccionario con las dependencias inyectadas, 
+    facilitando testabilidad y configuraciones personalizadas.
+    
+    Retorna las siguientes dependencias:
+      - "config": La instancia de configuración (usando config_override si se proporciona).
+      - "logger": Un logger obtenido con get_injected_logger usando la instancia de configuración.
+    
+    Ejemplo de uso:
+    
+        deps = inject_dependencies()
+        my_config = deps["config"]
+        my_logger = deps["logger"]
+    """
+    config_instance = config_override if config_override is not None else get_config()
+    # Se obtiene un logger por defecto ("default")
+    injected_logger = get_injected_logger("default", config_override=config_instance)
+    _logger.debug("Configuración inyectada: %s", config_instance)
+    return {"config": config_instance, "logger": injected_logger}
+
 # Export public functions
-__all__ = ['get_logger', 'set_verbose', 'is_verbose']
+__all__ = ['get_logger', 'set_verbose', 'is_verbose', 'get_injected_logger', 'inject_dependencies']

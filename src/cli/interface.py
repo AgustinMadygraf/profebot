@@ -6,8 +6,6 @@ Interfaz centralizada para interacción de línea de comandos.
 from src.console.console_interface import UnifiedConsoleInterface
 from src.utils.config.app_config import (
     get_config,
-    set_verbose as config_set_verbose,
-    set_colors as config_set_colors,
 )
 
 class CLInterface:
@@ -18,12 +16,7 @@ class CLInterface:
         self.verbose = verbose if verbose is not None else config.verbose_mode
         use_colors_value = use_colors if use_colors is not None else config.use_colors
         self.console = UnifiedConsoleInterface(use_colors_value)
-
-        # Sincronizar config global con valores locales
-        if verbose is not None:
-            config_set_verbose(verbose)
-        if use_colors is not None:
-            config_set_colors(use_colors)
+        # Se elimina la sincronización local a favor de centralizar en AppConfig
 
     def info(self, message: str, *args):
         " Muestra un mensaje informativo en la consola."
@@ -64,12 +57,12 @@ cli = CLInterface()
 def set_verbose(verbose: bool):
     "Establece el nivel de verbosidad de la interfaz."
     cli.verbose = verbose
-    get_config().verbose_mode = verbose  # Sincronización con AppConfig
+    get_config().verbose_mode = verbose  # Configuración centralizada
 
 def set_colors(use_colors: bool):
     "Establece el uso de colores en la interfaz"
     cli.console.use_colors = use_colors
-    get_config().use_colors = use_colors  # Sincronización con AppConfig
+    get_config().use_colors = use_colors  # Configuración centralizada
 
 def info(message: str, *args, **kwargs):
     "Muestra un mensaje informativo en la consola."

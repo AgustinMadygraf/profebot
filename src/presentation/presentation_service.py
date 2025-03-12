@@ -3,6 +3,7 @@ Path: src/presentation/presentation_service.py
 """
 
 from src.cli.interface import get_input
+from src.utils.config.app_config import get_config
 
 class PresentationService:
     "Clase que maneja la presentación de mensajes en la interfaz de usuario"
@@ -205,6 +206,12 @@ class PresentationService:
         self.interface.section("Iniciando servidor Web")
         self.interface.info(f"Servidor configurado en el puerto {port}")
         self.interface.info("Presione Ctrl+C para detener")
+
+    # Nuevo método para mostrar detalles de excepción en modo verbose
+    def show_exception_details(self, exception):
+        """Muestra detalles de la excepción si el modo verbose está activo"""
+        if get_config().verbose_mode:
+            self.interface.debug(f"Excepción: {exception}")
 
 def custom_greeting_plugin(message):
     "Plugin de ejemplo que muestra un saludo personalizado"

@@ -16,5 +16,11 @@ def log_warning(presentation_service, logger, message, warning):
 
 def log_info(presentation_service, logger, message):
     "Registra y muestra un mensaje informativo unificado"
-    presentation_service.info(message)
+    presentation_service.interface.info(message)  # Use the interface method
     logger.info(message)
+
+def log_exception(presentation_service, logger, message, exception):
+    "Registra y notifica la excepción completa de manera unificada"
+    full_message = f"{message}: {exception}"
+    presentation_service.show_error_message(full_message)
+    logger.exception(full_message)

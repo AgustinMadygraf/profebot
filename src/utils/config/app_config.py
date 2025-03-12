@@ -10,6 +10,22 @@ from typing import Dict, Any
 class AppConfig:
     """
     Clase singleton que centraliza la configuración de la aplicación.
+    
+    NOTA:
+      Esta clase unifica todas las configuraciones globales
+      tales como 'verbose_mode' y 'use_colors'.
+      Para obtener o actualizar un valor de configuración, utilice los métodos get() y set().
+      
+      Ejemplos de uso:
+          config = get_config()
+          verbose = config.get("verbose_mode", False)
+          config.set("verbose_mode", True)
+      
+      Claves principales:
+          - verbose_mode: bool   -> Activa el modo depuración.
+          - use_colors: bool     -> Habilita/deshabilita colores en la salida.
+          - max_retries: int     -> Número máximo de reintentos en procesos críticos.
+          - retry_delay: int     -> Retardo (en segundos) entre reintentos.
     """
     _instance = None
 
@@ -20,21 +36,27 @@ class AppConfig:
         return cls._instance
 
     def _initialize(self):
-        """Inicializa la configuración con valores por defecto"""
-        # Configuración centralizada de parámetros globales: verbose_mode y use_colors
+        """Inicializa la configuración con valores por defecto."""
         self._config: Dict[str, Any] = {
             "use_colors": True,
             "verbose_mode": False,
             "max_retries": 3,
             "retry_delay": 5
         }
-
-        # Procesar argumentos de línea de comandos
         self._process_command_line_args()
 
+    def __init__(self):
+        # Se omite inicialización adicional para evitar duplicados.
+        pass
+
     def _process_command_line_args(self):
-        """Procesa los argumentos de línea de comandos"""
-        self._config["verbose_mode"] = "--verbose" in sys.argv
+        if not hasattr(self, '_config'):
+            self._config: Dict[str, Any] = {
+                "use_colors": True,
+                "verbose_mode": False,
+                "max_retries": 3,
+                "retry_delay": 5
+            }
         self._config["use_colors"] = "--no-colors" not in sys.argv
 
     def get(self, key: str, default: Any = None) -> Any:
