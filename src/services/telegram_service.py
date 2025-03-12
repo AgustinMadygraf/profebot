@@ -97,8 +97,3 @@ class TelegramService:
             return TelegramUpdate.parse_obj(update)
         except ValueError:
             return None
-
-#    def set_webhook(self, webhook_url: str) -> bool:
-        # Dummy implementation: simula que el webhook se ha configurado exitosamente.
-        # En producción, aquí se realizaría la llamada a la API de Telegram.
-        #return True

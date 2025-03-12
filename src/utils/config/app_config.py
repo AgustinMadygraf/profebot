@@ -21,7 +21,7 @@ class AppConfig:
 
     def _initialize(self):
         """Inicializa la configuración con valores por defecto"""
-        # Configuración básica
+        # Configuración centralizada de parámetros globales: verbose_mode y use_colors
         self._config: Dict[str, Any] = {
             "use_colors": True,
             "verbose_mode": False,

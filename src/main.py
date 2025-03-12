@@ -6,7 +6,7 @@ import os
 import sys
 from flask import Flask
 from dotenv import load_dotenv
-from src.webhook import try_configure_webhook
+from src.configuration.webhook_configurator import WebhookConfigurator
 from src.views.app_view import blueprint as app_blueprint
 from src.presentation.presentation_service import PresentationService
 from src.presentation.interface import Interface
@@ -46,10 +46,10 @@ def main():
     interface = Interface(use_colors=use_colors)
     presentation_service = PresentationService(interface)
     presentation_service.show_server_status(True, "0.0.0.0", port)
-    configure_success = try_configure_webhook(use_colors)
-    # TAREA 5: VERIFICACIÓN MANUAL DE LA INTEGRACIÓN
+    configurator = WebhookConfigurator(use_colors)
+    success = configurator.try_configure_webhook()
     logger.info("[PRUEBAS] Verificando integración de PresentationService...")
-    if configure_success:
+    if success:
         logger.info("[PRUEBAS] El webhook fue configurado correctamente.")
     else:
         logger.error("[PRUEBAS] Falló la configuración del webhook. Revise la salida y los logs.")

@@ -29,11 +29,11 @@ class PresentationService:
 
     def show_error_message(self, message):
         """Muestra un mensaje de error siguiendo la guía de estilo"""
-        self.interface.display_error(message)
+        self.interface.error(message)
 
     def show_warning_message(self, message):
         """Muestra un mensaje de advertencia siguiendo la guía de estilo"""
-        self.interface.display_warning(message)
+        self.interface.warning(message)
 
     def show_debug_info(self, message):
         """Muestra información de depuración siguiendo la guía de estilo"""
@@ -195,6 +195,10 @@ class PresentationService:
     def show_message_sent(self, chat_id: int):
         " Muestra un mensaje de éxito al enviar un mensaje a un chat de Telegram "
         self.interface.info(f"Mensaje enviado correctamente al chat_id: {chat_id}")
+
+    def show_message_send_error(self, message: str) -> None:
+        " Muestra un mensaje de error al enviar un mensaje a un chat de Telegram "
+        self.interface.error(message)
 
     def show_server_start(self, port: int):
         " Muestra un mensaje de inicio del servidor web "

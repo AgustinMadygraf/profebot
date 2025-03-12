@@ -4,10 +4,14 @@ Path: src/presentation/interface.py
 
 import colorama
 from src.console.console_interface import UnifiedConsoleInterface
+from src.utils.config.app_config import get_config
 
 class Interface:
     "Clase para mostrar mensajes en la consola con colores"
-    def __init__(self, use_colors=True):
+    def __init__(self, use_colors: bool = None):
+        # Si no se especifica, se obtiene desde la configuración global
+        if use_colors is None:
+            use_colors = get_config().use_colors
         colorama.init()
         self.use_colors = use_colors
         self.console = UnifiedConsoleInterface(use_colors)
@@ -54,3 +58,8 @@ class Interface:
     def prompt_input(self, message):
         " Solicita al usuario una entrada de texto."
         return self.console.input(message)
+
+    def prompt_retry(self, context):
+        "Solicita al usuario confirmar si desea reintentar una acción."
+        # Se reutiliza confirm_action para solicitar reintento
+        return self.confirm_action(f"{context} - ¿Desea reintentar?")

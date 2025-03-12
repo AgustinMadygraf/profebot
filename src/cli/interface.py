@@ -64,12 +64,12 @@ cli = CLInterface()
 def set_verbose(verbose: bool):
     "Establece el nivel de verbosidad de la interfaz."
     cli.verbose = verbose
-    config_set_verbose(verbose)  # Sincronizar con config global
+    get_config().verbose_mode = verbose  # Sincronización con AppConfig
 
 def set_colors(use_colors: bool):
     "Establece el uso de colores en la interfaz"
     cli.console.use_colors = use_colors
-    config_set_colors(use_colors)  # Sincronizar con config global
+    get_config().use_colors = use_colors  # Sincronización con AppConfig
 
 def info(message: str, *args, **kwargs):
     "Muestra un mensaje informativo en la consola."

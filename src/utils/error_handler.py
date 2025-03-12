@@ -16,5 +16,5 @@ def log_warning(presentation_service, logger, message, warning):
 
 def log_info(presentation_service, logger, message):
     "Registra y muestra un mensaje informativo unificado"
-    presentation_service.show_debug_info(message)
+    presentation_service.info(message)
     logger.info(message)

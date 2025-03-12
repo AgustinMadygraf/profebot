@@ -6,11 +6,7 @@ Provides access to loggers without complex configuration.
 
 import sys
 from src.utils.logging.simple_logger import get_logger, set_verbose, is_verbose, initialize
-from src.utils.config.app_config import (
-    get_config,
-    set_verbose as config_set_verbose,
-    set_colors as config_set_colors
-)
+from src.utils.config.app_config import get_config
 
 # Initialize logging before anything else
 initialize()
@@ -22,26 +18,23 @@ config = get_config()
 verbose_mode = "--verbose" in sys.argv
 no_colors = "--no-colors" in sys.argv
 
-# Configure verbose mode based on command line arguments
-set_verbose(verbose_mode)
-config_set_verbose(verbose_mode)  # Sincronizar con config global
+# Actualizar configuracion central sin duplicado
+config.verbose_mode = verbose_mode
+config.use_colors = not no_colors
 
 # Get a logger for this module
 _logger = get_logger("dependency_injection")
 
-# Log initialization information
+# Log inicial
 if verbose_mode:
     _logger.debug("[VERBOSE] Modo verbose activado desde argumentos de línea de comandos")
 else:
     _logger.info("[INFO] Modo estándar de logging (use --verbose para mensajes de debug)")
 
-# Import and configure CLI interface for colors
+# Configuración de colores en CLI (se delega el valor desde AppConfig)
 try:
-    from src.cli.interface import set_colors, set_verbose as cli_set_verbose
-    set_colors(not no_colors)
+    from src.cli.interface import set_verbose as cli_set_verbose
     cli_set_verbose(verbose_mode)
-    config_set_colors(not no_colors)  # Sincronizar con config global
-
     if no_colors:
         _logger.info("[INFO] Salida de colores deshabilitada (--no-colors)")
 except ImportError:

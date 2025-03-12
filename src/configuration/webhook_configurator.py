@@ -1,6 +1,7 @@
 """
 Path: src/configuration/webhook_configurator.py
 """
+
 from src.presentation.presentation_service import PresentationService
 from src.presentation.interface import Interface
 from src.services.telegram_service import TelegramService
@@ -53,15 +54,21 @@ class WebhookConfigurator:
         self.presentation_service.show_debug_info(
             f"Intentando configurar webhook en: {webhook_url}"
         )
+        # TODO: Desacoplar la lógica de configuración del webhook de las notificaciones directas,
+        # utilizando un mecanismo de eventos o callbacks.
         try:
             success, _ = self.telegram_service.configure_webhook(
                 webhook_url
             )
         except (ConnectionError, TimeoutError) as e:
             self.presentation_service.show_error_message(f"Excepción al configurar webhook: {e}")
+            from src.utils.event_dispatcher import dispatcher  # nuevo
+            dispatcher.dispatch("webhook_failed", error=str(e))
             return False, str(e)
         if success:
             self.presentation_service.show_webhook_status(True, webhook_url)
+            from src.utils.event_dispatcher import dispatcher  # nuevo
+            dispatcher.dispatch("webhook_configured", url=webhook_url)
             return True, None
         else:
             self.presentation_service.show_webhook_status(False)
@@ -71,6 +78,8 @@ class WebhookConfigurator:
                 self.presentation_service.show_warning_message(
                     "Webhook no configurado por decisión del usuario"
                 )
+                from src.utils.event_dispatcher import dispatcher  # nuevo
+                dispatcher.dispatch("webhook_failed", error="Decisión de usuario")
                 return False, "Webhook no configurado por decisión del usuario"
 
     def try_configure_webhook(self):
