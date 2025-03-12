@@ -68,5 +68,4 @@ class UnifiedConsoleInterface:
         prefix = "[INPUT]: "
         if self.use_colors:
             return input(f"{Fore.BLUE}{prefix}{message}: {Style.RESET_ALL}")
-        else:
-            return input(f"{prefix}{message}: ")
+        return input(f"{prefix}{message}: ")

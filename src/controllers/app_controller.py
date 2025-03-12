@@ -3,6 +3,11 @@ Path: src/controllers/app_controller.py
 Controlador de la aplicación que maneja las solicitudes.
 """
 
+import os
+import sys
+# Agregar el directorio padre para que 'src' sea importable
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
 from src.utils.logging.dependency_injection import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
@@ -49,9 +54,9 @@ def process_update(update: dict) -> str | None:
         presentation_service.show_response_generated(response)
         send_message(telegram_update, response)
         return response
-    else:
-        logger.info("Update recibido sin respuesta generada")
-        return None
+
+    logger.info("Update recibido sin respuesta generada")
+    return None
 
 def generate_response(telegram_update: TelegramUpdate) -> str | None:
     " Genera una respuesta para un objeto TelegramUpdate "

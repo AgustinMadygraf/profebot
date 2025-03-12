@@ -4,6 +4,9 @@ Path: src/main.py
 
 import os
 import sys
+# Agregar el directorio padre para que 'src' sea importable
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
 from flask import Flask
 from dotenv import load_dotenv
 from src.configuration.webhook_configurator import WebhookConfigurator

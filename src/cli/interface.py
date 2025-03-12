@@ -3,91 +3,50 @@ Path: src/cli/interface.py
 Interfaz centralizada para interacción de línea de comandos.
 """
 
-from src.console.console_interface import UnifiedConsoleInterface
-from src.utils.config.app_config import (
-    get_config,
-)
+import os
+import sys
+# Agregar el directorio padre para que 'src' sea importable
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-class CLInterface:
-    "Interfaz centralizada para interacción de línea de comandos."
-    def __init__(self, verbose: bool = None, use_colors: bool = None):
-        # Obtener valores de configuración global si no se especifican
-        config = get_config()
-        self.verbose = verbose if verbose is not None else config.verbose_mode
-        use_colors_value = use_colors if use_colors is not None else config.use_colors
-        self.console = UnifiedConsoleInterface(use_colors_value)
-        # Se elimina la sincronización local a favor de centralizar en AppConfig
+from src.presentation.interface import Interface
+from src.utils.config.app_config import get_config
 
-    def info(self, message: str, *args):
-        " Muestra un mensaje informativo en la consola."
-        self.console.info(message % args if args else message)
-
-    def warning(self, message: str, *args):
-        " Muestra un mensaje de advertencia en la consola."
-        self.console.warning(message % args if args else message)
-
-    def error(self, message: str, *args):
-        " Muestra un mensaje de error en la consola."
-        self.console.error(message % args if args else message)
-
-    def debug(self, message: str, *args):
-        " Muestra un mensaje de depuración en la consola."
-        if self.verbose:
-            self.console.debug(message % args if args else message)
-
-    def confirm(self, message: str, default: bool = True) -> bool:
-        " Pide confirmación al usuario para realizar una acción."
-        result = self.console.confirm(message)
-        return result if result is not None else default
-
-    def input(self, message: str, default: str = None) -> str:
-        " Solicita al usuario una entrada de texto."
-        result = self.console.input(message)
-        return result if result else (default or "")
-
-    def section(self, title: str):
-        " Muestra un título de sección en la consola."
-        # Se usa la interfaz unificada para tener formato y colores consistentes
-        self.console.info(f"[SECCIÓN] {title.upper()}")
-        self.console.info("=" * (len(title) + 10))
-
-# Singleton instance
-cli = CLInterface()
+cli = Interface()
 
 def set_verbose(verbose: bool):
-    "Establece el nivel de verbosidad de la interfaz."
-    cli.verbose = verbose
-    get_config().verbose_mode = verbose  # Configuración centralizada
+    """Establece el nivel de verbosidad de la interfaz."""
+    cli.debug(f"Verbosidad actualizada a: {verbose}")
+    get_config().verbose_mode = verbose
 
 def set_colors(use_colors: bool):
-    "Establece el uso de colores en la interfaz"
-    cli.console.use_colors = use_colors
-    get_config().use_colors = use_colors  # Configuración centralizada
+    """Establece el uso de colores en la interfaz."""
+    cli.info(f"Ajuste de colores a: {'habilitado' if use_colors else 'deshabilitado'}")
+    get_config().use_colors = use_colors
 
 def info(message: str, *args, **kwargs):
-    "Muestra un mensaje informativo en la consola."
+    """Muestra un mensaje informativo en la interfaz."""
     cli.info(message, *args, **kwargs)
 
 def warning(message: str, *args, **kwargs):
-    "Muestra un mensaje de advertencia en la consola."
+    """Muestra un mensaje de advertencia en la interfaz."""
     cli.warning(message, *args, **kwargs)
 
 def error(message: str, *args, **kwargs):
-    "Muestra un mensaje de error en la consola."
+    """Muestra un mensaje de error en la interfaz."""
     cli.error(message, *args, **kwargs)
 
 def debug(message: str, *args, **kwargs):
-    "Muestra un mensaje de depuración en la consola."
+    """Muestra un mensaje de depuración en la interfaz."""
     cli.debug(message, *args, **kwargs)
 
 def confirm(message: str, default: bool = True) -> bool:
-    "Pide confirmación al usuario para realizar una acción."
+    """Solicita confirmación al usuario y retorna el resultado."""
     return cli.confirm(message, default)
 
 def get_input(message: str, default: str = None) -> str:
-    "Solicita al usuario una entrada de texto."
+    """Solicita una entrada de texto al usuario y retorna el valor ingresado."""
     return cli.input(message, default)
 
 def section(title: str):
-    "Muestra un título de sección en la consola."
+    """Muestra un título de sección en la interfaz."""
     cli.section(title)

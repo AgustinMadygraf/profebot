@@ -14,19 +14,13 @@ initialize()
 # Obtener configuración centralizada
 config = get_config()
 
-# Get command line arguments and update config
-verbose_mode = "--verbose" in sys.argv
-no_colors = "--no-colors" in sys.argv
-
-# Actualizar configuración central utilizando el API de AppConfig
-config.set("verbose_mode", verbose_mode)
-config.set("use_colors", not no_colors)
+# La configuración de línea de comandos ya se procesa en AppConfig
 
 # Get a logger for this module
 _logger = get_logger("dependency_injection")
 
 # Log inicial
-if verbose_mode:
+if config.get("verbose_mode"):
     _logger.debug("[VERBOSE] Modo verbose activado desde argumentos de línea de comandos")
 else:
     _logger.info("[INFO] Modo estándar de logging (use --verbose para mensajes de debug)")
@@ -34,8 +28,8 @@ else:
 # Configuración de colores en CLI (se delega el valor desde AppConfig)
 try:
     from src.cli.interface import set_verbose as cli_set_verbose
-    cli_set_verbose(verbose_mode)
-    if no_colors:
+    cli_set_verbose(config.get("verbose_mode"))
+    if not config.get("use_colors"):
         _logger.info("[INFO] Salida de colores deshabilitada (--no-colors)")
 except ImportError:
     _logger.debug("Interfaz CLI no disponible - configuración de colores no aplicada")

@@ -63,3 +63,17 @@ class Interface:
         "Solicita al usuario confirmar si desea reintentar una acción."
         # Se reutiliza confirm_action para solicitar reintento
         return self.confirm_action(f"{context} - ¿Desea reintentar?")
+
+    def confirm(self, message, default=True):
+        "Alias para confirm_action, para tener la API unificada."
+        return self.confirm_action(message)
+
+    def input(self, message, default=""):
+        "Alias para prompt_input, retornando un valor por defecto si la entrada es vacía."
+        result = self.prompt_input(message)
+        return result if result else default
+        
+    def section(self, title: str):
+        """Muestra un título de sección en la interfaz."""
+        self.console.info(f"[SECCIÓN] {title.upper()}")
+        self.console.info("=" * (len(title) + 10))

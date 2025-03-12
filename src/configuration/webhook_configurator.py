@@ -2,6 +2,11 @@
 Path: src/configuration/webhook_configurator.py
 """
 
+import os
+import sys
+# Agregar el directorio padre para que 'src' sea importable
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
 import time
 from src.presentation.presentation_service import PresentationService
 from src.presentation.interface import Interface
@@ -32,24 +37,11 @@ class WebhookConfigurator:
         self.notification_callbacks[event] = callback
 
     def _notify(self, event: str, message: str, *args, **kwargs):
-        """Notifica un evento usando el callback registrado o la PresentationService por defecto."""
+        """Notifica de forma unificada utilizando PresentationService.notify()."""
         if event in self.notification_callbacks:
             self.notification_callbacks[event](message, *args, **kwargs)
         else:
-            # Mapeo simple de evento a método en PresentationService
-            method = {
-                "debug": self.presentation_service.show_debug_info,
-                "operation_start": self.presentation_service.notify_operation_start,
-                "status": self.presentation_service.show_webhook_status,
-                "warning": self.presentation_service.show_warning_message,
-                "error": self.presentation_service.show_error_message,
-                "retry_info": self.presentation_service.show_webhook_retry_info,
-            }.get(event)
-            if method:
-                method(message, *args, **kwargs)
-            else:
-                # Se utiliza el método "info" de la interfaz asociada
-                self.presentation_service.interface.info(message)
+            self.presentation_service.notify(event, message, *args, **kwargs)
 
     def get_public_url(self):
         "Solicita al usuario la URL pública para configurar el webhook"
@@ -71,6 +63,10 @@ class WebhookConfigurator:
             return None, "La URL debe comenzar con http:// o https://"
         return public_url, None
 
+    def _calculate_delay(self, attempt, base_delay):
+        "Calcula el delay de reintento usando backoff exponencial"
+        return base_delay * (2 ** attempt)
+
     def configure_webhook(self, base_url, webhook_endpoint="webhook"):
         "Configura el webhook con la URL proporcionada utilizando un ciclo iterativo"
         config = get_config()
@@ -81,8 +77,8 @@ class WebhookConfigurator:
         while attempts < max_attempts:
             self._notify(
                 "debug",
-                f"Intento {attempts + 1} de {max_attempts} para configurar "
-                f"webhook en: {webhook_url}"
+                (f"Intento {attempts + 1} de {max_attempts} para configurar "
+                 f"webhook en: {webhook_url}")
             )
             self._notify("operation_start", "Configuración de webhook")
             success, _ = self._attempt_configure(webhook_url)
@@ -90,23 +86,20 @@ class WebhookConfigurator:
                 self._notify("status", webhook_url, True)
                 dispatcher.dispatch("webhook_configured", url=webhook_url)
                 return True, None
-            else:
-                self._notify("status", None, False)
-                if not self.presentation_service.ask_for_retry("configuración del webhook"):
-                    self._notify("warning", "Webhook no configurado por decisión del usuario")
-                    dispatcher.dispatch("webhook_failed", error="Decisión de usuario")
-                    return False, "Webhook no configurado por decisión del usuario"
-                else:
-                    # Aplicar backoff exponencial y notificar el intento de reintento vía evento
-                    delay = base_delay * (2 ** attempts)
-                    self._notify("retry_info", "", attempts, max_attempts, delay)
-                    dispatcher.dispatch(
-                        "retry_attempt", 
-                        attempt=attempts,
-                        max_attempts=max_attempts,
-                        delay=delay
-                    )
-                    time.sleep(delay)
+            self._notify("status", None, False)
+            if not self.presentation_service.ask_for_retry("configuración del webhook"):
+                self._notify("warning", "Webhook no configurado por decisión del usuario")
+                dispatcher.dispatch("webhook_failed", error="Decisión de usuario")
+                return False, "Webhook no configurado por decisión del usuario"
+            delay = self._calculate_delay(attempts, base_delay)
+            self._notify("retry_info", "", attempts, max_attempts, delay)
+            dispatcher.dispatch(
+                "retry_attempt", 
+                attempt=attempts,
+                max_attempts=max_attempts,
+                delay=delay
+            )
+            time.sleep(delay)
             attempts += 1
         self._notify("warning", "Número máximo de intentos alcanzado")
         return False, "Número máximo de intentos alcanzado"

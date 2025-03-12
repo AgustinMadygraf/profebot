@@ -213,6 +213,26 @@ class PresentationService:
         if get_config().verbose_mode:
             self.interface.debug(f"Excepción: {exception}")
 
+    # Estrategia Unificada para Notificaciones:
+    # - Todas las notificaciones deben enviarse a través de notify().
+    # - Los eventos soportados son: 'info', 'debug', 'error', 'warning' y 'success'.
+    # - Esto garantiza consistencia en la salida y facilita ajustes globales.
+    def notify(self, event: str, message, *args, **kwargs):
+        """Notifica utilizando la interfaz unificada.
+           Permite centralizar las notificaciones y soporta eventos:
+             'info', 'debug', 'error', 'warning', 'success' y 'status'.
+        """
+        mapping = {
+            "info": self.interface.info,
+            "debug": self.interface.debug,
+            "error": self.interface.error,
+            "warning": self.interface.warning,
+            "success": self.interface.success,
+            "status": lambda message, *args, **kwargs: self.interface.info(message)
+        }
+        func = mapping.get(event, self.interface.info)
+        func(message, *args, **kwargs)
+
 def custom_greeting_plugin(message):
     "Plugin de ejemplo que muestra un saludo personalizado"
     return f"Mensaje customizado: {message}"

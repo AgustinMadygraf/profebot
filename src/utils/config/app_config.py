@@ -58,6 +58,7 @@ class AppConfig:
                 "retry_delay": 5
             }
         self._config["use_colors"] = "--no-colors" not in sys.argv
+        self._config["verbose_mode"] = "--verbose" in sys.argv
 
     def get(self, key: str, default: Any = None) -> Any:
         """Obtiene un valor de configuración"""

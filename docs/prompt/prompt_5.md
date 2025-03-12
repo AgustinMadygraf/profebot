@@ -1,0 +1,1 @@
+¿Que tareas ya se han realizado y cuáles quedan pendiente? procede a realizar la siguiente tarea pendiente?
