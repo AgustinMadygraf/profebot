@@ -97,3 +97,25 @@ class TelegramService:
             return TelegramUpdate.parse_obj(update)
         except ValueError:
             return None
+
+    @staticmethod
+    def get_webhook_info() -> Tuple[bool, Any]:
+        """
+        Obtiene información del webhook de Telegram.
+        
+        Returns:
+            Tuple[bool, Any]: (éxito, datos_json_o_mensaje_error)
+        """
+        valid, error_msg = TelegramService.validate_token()
+        if not valid:
+            return False, error_msg
+
+        token = os.getenv("TELEGRAM_TOKEN")
+        webhook_info_url = f"https://api.telegram.org/bot{token}/getWebhookInfo"
+
+        try:
+            response = requests.get(webhook_info_url, timeout=10)
+            response.raise_for_status()
+            return True, response.json()
+        except requests.exceptions.RequestException as e:
+            return False, f"Error obteniendo información del webhook: {str(e)}"

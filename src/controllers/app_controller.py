@@ -2,12 +2,12 @@
 Path: src/controllers/app_controller.py
 Controlador de la aplicación que maneja las solicitudes.
 """
-from src.utils.logging.dependency_injection import get_logger
+from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
 
 # Initialize logger
-logger = get_logger("app_controller")
+logger = get_logger()
 
 
 def _handle_error(message: str) -> None:

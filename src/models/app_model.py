@@ -11,10 +11,9 @@ from google.api_core.exceptions import GoogleAPIError
 from pydantic import BaseModel
 import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
-from src.utils.logging.dependency_injection import get_logger
+from src.utils.logging.simple_logger import get_logger
 
-_fallback_logger = get_logger("app_model")
-
+_fallback_logger = get_logger()
 class TelegramUpdate(BaseModel):
     " Modelo para representar un objeto de actualización de Telegram "
     update_id: int
@@ -30,7 +29,6 @@ class TelegramUpdate(BaseModel):
             api_key = os.getenv("GEMINI_API_KEY")
             if not api_key:
                 return "Error: GEMINI_API_KEY no configurado."
-            # Cargar system_instruction desde utils/config.json
             try:
                 config_path = os.path.join(os.path.dirname(__file__), "../utils/config.json")
                 with open(config_path, "r", encoding="utf-8") as f:
