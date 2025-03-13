@@ -1,7 +1,7 @@
 """
 Path: src/presentation/presentation_service.py
 """
-
+from traceback import format_exc
 from src.cli.interface import get_input
 from src.utils.config.app_config import get_config
 
@@ -207,11 +207,14 @@ class PresentationService:
         self.interface.info(f"Servidor configurado en el puerto {port}")
         self.interface.info("Presione Ctrl+C para detener")
 
-    # Nuevo método para mostrar detalles de excepción en modo verbose
+    # Nuevo método actualizado para mostrar detalles de excepciones en modo verbose
     def show_exception_details(self, exception):
-        """Muestra detalles de la excepción si el modo verbose está activo"""
+        """Muestra detalles de la excepción si el modo verbose está activo.
+           Incluye el traceback completo para facilitar la depuración.
+        """
         if get_config().verbose_mode:
-            self.interface.debug(f"Excepción: {exception}")
+            tb = format_exc()
+            self.interface.debug(f"Excepción: {exception}\nTraceback:\n{tb}")
 
     # Estrategia Unificada para Notificaciones:
     # - Todas las notificaciones deben enviarse a través de notify().
@@ -222,6 +225,7 @@ class PresentationService:
            Permite centralizar las notificaciones y soporta eventos:
              'info', 'debug', 'error', 'warning', 'success' y 'status'.
         """
+        # Using standardized messaging as defined in console_message_standards.md
         mapping = {
             "info": self.interface.info,
             "debug": self.interface.debug,

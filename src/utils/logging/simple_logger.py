@@ -18,10 +18,12 @@ config = LoggerConfig()
 _loggers: Dict[str, logging.Logger] = {}
 _initialized = False   # <--- Nuevo
 
-# Simple console formatter
-_formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+def _get_formatter():
+    # Nuevo: Retorna un formatter dinámico según el modo verbose
+    fmt = ' %(name)s - %(levelname)s - %(message)s'
+    if config.verbose_mode:
+        fmt = ' %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
+    return logging.Formatter(fmt)
 
 def set_verbose(enabled: bool = True) -> bool:
     """
@@ -104,7 +106,8 @@ def get_logger(name: str = "profebot") -> logging.Logger:
 
     # Create console handler
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(_formatter)
+    # Se reemplaza el _formatter fijo por el formatter dinámico
+    handler.setFormatter(_get_formatter())
     handler.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
 
     # Avoid duplicate messages in root logger
@@ -138,9 +141,21 @@ def initialize() -> None:
 
     # Add console handler to root logger
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(_formatter)
+    # Se establece el formatter dinámico en lugar del fijo
+    handler.setFormatter(_get_formatter())
     handler.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
     root_logger.addHandler(handler)
+
+    # Nuevo: Configurar loggers externos para forzar estilo unificado y evitar duplicaciones
+    for ext_logger_name in ['werkzeug', 'urllib3']:
+        ext_logger = logging.getLogger(ext_logger_name)
+        _clear_handlers(ext_logger)
+        ext_handler = logging.StreamHandler(sys.stdout)
+        ext_handler.setFormatter(_get_formatter())
+        ext_handler.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
+        ext_logger.addHandler(ext_handler)
+        ext_logger.setLevel(logging.DEBUG if config.verbose_mode else logging.INFO)
+        ext_logger.propagate = False
 
     # Mark as initialized
     _initialized = True

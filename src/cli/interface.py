@@ -3,11 +3,6 @@ Path: src/cli/interface.py
 Interfaz centralizada para interacción de línea de comandos.
 """
 
-import os
-import sys
-# Agregar el directorio padre para que 'src' sea importable
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-
 from src.presentation.interface import Interface
 from src.utils.config.app_config import get_config
 
@@ -39,9 +34,13 @@ def debug(message: str, *args, **kwargs):
     """Muestra un mensaje de depuración en la interfaz."""
     cli.debug(message, *args, **kwargs)
 
-def confirm(message: str, default: bool = True) -> bool:
+def confirm(message: str) -> bool:
     """Solicita confirmación al usuario y retorna el resultado."""
-    return cli.confirm(message, default)
+    # Añadir sugerencia de formato si no está presente
+    if "(s/n)" not in message:
+        message = f"{message} (s/n)"
+    # Se elimina el argumento 'default' ya que cli.confirm solo acepta un parámetro
+    return cli.confirm(message)
 
 def get_input(message: str, default: str = None) -> str:
     """Solicita una entrada de texto al usuario y retorna el valor ingresado."""

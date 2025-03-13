@@ -4,7 +4,6 @@ Simplified dependency injection for logging.
 Provides access to loggers without complex configuration.
 """
 
-import sys
 from src.utils.logging.simple_logger import get_logger, set_verbose, is_verbose, initialize
 from src.utils.config.app_config import get_config
 
@@ -48,14 +47,13 @@ def log_debug(message, *args, **kwargs):
     get_logger().debug(message, *args, **kwargs)
 
 def get_injected_logger(name: str, config_override=None):
-    """Retorna un logger configurado usando una instancia de configuración inyectada.
-    Si se provee 'config_override', se usará esa instancia en vez de la configuración global.
-    """
+    """Retorna un logger configurado usando una instancia de configuración inyectada."""
     config_instance = config_override if config_override is not None else get_config()
-    # Se asume que 'get_logger' utiliza internamente la configuración
-    return get_logger(name)
+    logger = get_logger(name)
+    # Nuevo: Loguea la configuración inyectada para mayor trazabilidad
+    logger.debug("Logger injected with verbose_mode: %s", config_instance.get("verbose_mode"))
+    return logger
 
-# Nueva función para inyección explícita de dependencias
 def inject_dependencies(config_override=None) -> dict:
     """
     Devuelve un diccionario con las dependencias inyectadas, 
