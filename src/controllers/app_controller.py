@@ -5,6 +5,7 @@ Controlador de la aplicación que maneja las solicitudes.
 from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
+from typing import Optional  # Import Optional from typing
 
 # Initialize logger
 logger = get_logger()
@@ -23,7 +24,7 @@ def validate_telegram_token() -> bool:
         return False
     return True
 
-def process_update(update: dict) -> str | None:
+def process_update(update: dict) -> Optional[str]:
     " Procesa un update de Telegram y retorna una respuesta si es necesario "
     logger.info("Procesando update")
 
@@ -44,7 +45,7 @@ def process_update(update: dict) -> str | None:
     logger.info("Update recibido sin respuesta generada")
     return None
 
-def generate_response(telegram_update: TelegramUpdate) -> str | None:
+def generate_response(telegram_update: TelegramUpdate) -> Optional[str]:
     " Genera una respuesta para un objeto TelegramUpdate "
     return telegram_update.get_response()
 

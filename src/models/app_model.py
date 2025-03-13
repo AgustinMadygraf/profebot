@@ -30,32 +30,30 @@ class TelegramUpdate(BaseModel):
             if not api_key:
                 return "Error: GEMINI_API_KEY no configurado."
             try:
-                config_path = os.path.join(os.path.dirname(__file__), "../utils/config.json")
-                with open(config_path, "r", encoding="utf-8") as f:
-                    config = json.load(f)
-                system_instruction = config.get(
-                    "system_instruction", 
-                    "Responde de forma amistosa."
-                )
-                if "system_instruction" in config:
-                    _fallback_logger.info(
-                        "Instrucciones de sistema cargadas correctamente: %s", 
-                        system_instruction
-                    )
-                else:
-                    _fallback_logger.warning(
-                        "No se encontró system_instruction en config, "
-                        "usando valor por defecto: %s", 
-                        system_instruction
-                    )
-            except (FileNotFoundError, json.JSONDecodeError) as e:
-                return f"Error leyendo config: {e}"
+                system_instruction = self._load_system_instruction()
+            except Exception as e:
+                return str(e)
             client = GeminiLLMClient(api_key, system_instruction)
             try:
                 return client.send_message(text)
             except (RpcError, GoogleAPIError) as e:
                 return f"Error generando respuesta: {e}"
         return None
+
+    def _load_system_instruction(self) -> str:
+        "Carga las instrucciones del sistema desde el archivo de configuración."
+        try:
+            config_path = os.path.join(os.path.dirname(__file__), "../utils/config.json")
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+            system_instruction = config.get("system_instructions", "Responde de forma amistosa.")
+            if "system_instructions" in config:
+                _fallback_logger.info("Instrucciones de sistema cargadas correctamente: %s", system_instruction)
+            else:
+                _fallback_logger.warning("No se encontró system_instructions en config, usando valor por defecto: %s", system_instruction)
+            return system_instruction
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            raise Exception(f"Error leyendo config: {e}")
 
 class GeminiLLMClient(IStreamingLLMClient):
     """
