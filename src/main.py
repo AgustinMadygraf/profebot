@@ -7,11 +7,7 @@ from flask import Flask
 from dotenv import load_dotenv
 from src.configuration.webhook_configurator import WebhookConfigurator
 from src.views.app_view import blueprint as app_blueprint
-from src.presentation.presentation_service import PresentationService
-from src.presentation.interface import Interface
-from src.cli.interface import section
 from src.utils.logging.dependency_injection import get_injected_logger
-from src.utils.error_handler import log_error, log_info
 from src.utils.config.app_config import get_config
 
 def create_app() -> Flask:
@@ -39,8 +35,6 @@ def create_app() -> Flask:
 
 def main():
     "Punto de entrada principal de la aplicación"
-    section("Iniciando ProfeBot")
-    # Obtener explícitamente la configuración para inyección
     config_instance = get_config()
     logger = get_injected_logger("main", config_override=config_instance)
     logger.debug("Config instance: %s", config_instance)
@@ -49,12 +43,10 @@ def main():
     # Uso explícito de la configuración inyectada
     use_colors = config_instance.use_colors
     port = int(os.getenv("PORT", "8000"))
-    interface = Interface(use_colors=use_colors)
-    presentation_service = PresentationService(interface)
-    presentation_service.show_server_status(True, "0.0.0.0", port)
+    logger.info("Servidor iniciándose en 0.0.0.0:%s", port)
     configurator = WebhookConfigurator(use_colors)
     success = configurator.try_configure_webhook()
-    logger.debug("Webhook configuration attempted with result: %s", success)  # <-- Debug agregado
+    logger.debug("Webhook configuration attempted with result: %s", success)
     logger.info("[PRUEBAS] Verificando integración de PresentationService...")
     if success:
         logger.info("[PRUEBAS] El webhook fue configurado correctamente.")
@@ -63,7 +55,11 @@ def main():
     try:
         app.run(host="0.0.0.0", port=port, debug=True)
     except (OSError, RuntimeError) as e:
-        log_error(presentation_service, logger, "Error en la ejecución del servidor", e)
-        logger.debug("Caught exception: %s", e)  # <-- Debug agregado
+        logger.error("Error en la ejecución del servidor: %s", e)
+        logger.debug("Caught exception: %s", e)
     finally:
-        log_info(presentation_service, logger, "El servidor se ha detenido")
+        logger.info("El servidor se ha detenido")
+
+if __name__ == '__main__':
+    from src.main import main
+    main()

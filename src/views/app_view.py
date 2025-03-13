@@ -4,7 +4,7 @@ Path: src/views/app_view.py
 
 from flask import Blueprint, request, jsonify
 from src.controllers.app_controller import process_update
-from src.utils.logging.dependency_injection import get_logger  # nuevo
+from src.utils.logging.dependency_injection import get_logger
 
 blueprint = Blueprint('app', __name__)
 

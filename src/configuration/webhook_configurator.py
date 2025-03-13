@@ -3,8 +3,6 @@ Path: src/configuration/webhook_configurator.py
 """
 
 import time
-from src.presentation.presentation_service import PresentationService
-from src.presentation.interface import Interface
 from src.services.telegram_service import TelegramService
 from src.utils.logging.dependency_injection import get_logger
 from src.utils.error_handler import log_warning, log_exception
@@ -16,9 +14,6 @@ __all__ = ['WebhookConfigurator']
 class WebhookConfigurator:
     "Clase que maneja la configuración del webhook"
     def __init__(self, use_colors: bool):
-
-        self.interface = Interface(use_colors=use_colors)
-        self.presentation_service = PresentationService(self.interface)
         self.telegram_service = TelegramService()
         # Nuevo: Diccionario para callbacks de notificación
         self.notification_callbacks = {}
@@ -37,33 +32,28 @@ class WebhookConfigurator:
         self.notification_callbacks[event] = callback
 
     def _notify(self, event: str, message: str, *args, **kwargs):
-        """Notifica de forma unificada utilizando PresentationService.notify()."""
-        get_logger("webhook_configurator").debug("Notifying event: %s, message: %s", event, message)
+        """Notifica de forma unificada sin depender de presentation_service."""
+        logger = get_logger("webhook_configurator")
+        logger.debug("Notifying event: %s, message: %s", event, message)
         if event in self.notification_callbacks:
             self.notification_callbacks[event](message, *args, **kwargs)
         else:
-            self.presentation_service.notify(event, message, *args, **kwargs)
+            # Fallback: loggear la notificación
+            logger.info("Notification [%s]: %s", event, message)
 
     def get_public_url(self):
         "Solicita al usuario la URL pública para configurar el webhook"
         logger_local = get_logger("webhook_configurator")
         logger_local.debug("Solicitando URL pública al usuario")
-        public_url = self.presentation_service.ask_for_public_url()
+        public_url = input("Ingrese la URL pública para configurar el webhook: ").strip()
         if public_url:
             logger_local.debug("URL pública ingresada: %s", public_url)
         if not public_url:
-            log_warning(
-                self.presentation_service,
-                logger_local,
-                "Validación de URL", 
-                "No se proporcionó una URL"
-            )
+            log_warning(None, logger_local, "Validación de URL", "No se proporcionó una URL")
             return None, "No se proporcionó una URL"
         if not public_url.startswith(("http://", "https://")):
-            log_warning(
-                self.presentation_service, logger_local, "Validación de URL",
-                "La URL debe comenzar con http:// o https://"
-            )
+            log_warning(None, logger_local, "Validación de URL",
+                        "La URL debe comenzar con http:// o https://")
             return None, "La URL debe comenzar con http:// o https://"
         return public_url, None
 
@@ -100,10 +90,11 @@ class WebhookConfigurator:
 
     def _should_retry_configuration(self):
         """
-        Separa la lógica de confirmación de reintento para configurar el webhook.
-        Retorna True si se debe reintentar; False en caso contrario.
+        Lógica de confirmación de reintento para configurar el webhook.
+        Retorna True si se debe reintentar, False en caso contrario.
         """
-        return self.presentation_service.ask_for_retry("configuración del webhook")
+        response = input("¿Desea reintentar la configuración del webhook? (s/N): ").strip().lower()
+        return response == 's'
 
     def configure_webhook(self, base_url, webhook_endpoint="webhook"):
         "Configura el webhook con la URL proporcionada utilizando un ciclo iterativo"
@@ -147,7 +138,7 @@ class WebhookConfigurator:
         except (ConnectionError, TimeoutError) as e:
             # Nuevo: Uso de log_exception para manejo unificado de errores
             log_exception(
-                self.presentation_service,
+                None,
                 logger_local,
                 "Excepción al configurar webhook", 
                 e

@@ -5,19 +5,13 @@ Controlador de la aplicación que maneja las solicitudes.
 from src.utils.logging.dependency_injection import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
-from src.presentation.presentation_service import PresentationService
-from src.presentation.interface import Interface
 
 # Initialize logger
 logger = get_logger("app_controller")
 
-# Se crea una instancia con una interfaz por defecto (sin colores)
-default_interface = Interface(use_colors=False)
-presentation_service = PresentationService(default_interface)
 
-# Nueva función auxiliar para separar la notificación de errores de la lógica de negocio
 def _handle_error(message: str) -> None:
-    presentation_service.notify("error", message)
+    logger.error("Error: %s", message)
 
 def validate_telegram_token() -> bool:
     """
@@ -33,24 +27,17 @@ def process_update(update: dict) -> str | None:
     " Procesa un update de Telegram y retorna una respuesta si es necesario "
     logger.info("Procesando update")
 
-    # Usar el servicio de presentación
-    presentation_service.show_update_processing(update)
-
-    # Usar el servicio para parsear el update
     telegram_update = TelegramService.parse_update(update)
     logger.debug("Update parseado: %s", telegram_update)
 
     if not telegram_update:
-        # Se separa la notificación de error de la lógica de negocio
         _handle_error("No se pudo parsear el update")
         return None
-
-    # Generar respuesta
     response = generate_response(telegram_update)
 
     if response:
         logger.info("Respuesta generada")
-        presentation_service.show_response_generated(response)
+
         send_message(telegram_update, response)
         return response
 
@@ -71,12 +58,9 @@ def send_message(telegram_update: TelegramUpdate, text: str) -> None:
     chat_id = chat["id"]
     logger.debug("Enviando mensaje al chat_id: %s", chat_id)
 
-    # Usar el servicio para enviar el mensaje
     success, error_msg = TelegramService.send_message(chat_id, text)
 
     if success:
-        presentation_service.notify(
-            "success", f"Mensaje enviado correctamente al chat_id: {chat_id}"
-        )
+        logger.info("Mensaje enviado correctamente al chat_id: %s", chat_id)
     else:
         _handle_error(error_msg)
