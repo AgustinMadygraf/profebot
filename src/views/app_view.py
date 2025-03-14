@@ -6,12 +6,14 @@ from flask import Blueprint, request, jsonify
 from src.controllers.app_controller import process_update
 from src.utils.logging.simple_logger import get_logger
 
+logger = get_logger()
 blueprint = Blueprint('app', __name__)
 
 @blueprint.route("/", methods=["POST"])
 def telegram_webhook():
     """Procesa un update de Telegram y retorna una respuesta"""
     update = request.get_json()
+    logger.debug("telegram_webhook - Received update: %s", update)
     response_message = process_update(update)
     return jsonify({
         "status": "ok",
@@ -23,9 +25,9 @@ def webhook():
     """Recibe el update de Telegram"""
     try:
         update = request.get_json()
+        logger.debug("webhook - Received update: %s", update)
         response = process_update(update)
         return jsonify({"status": "ok", "response": response})
     except (ValueError, KeyError, TypeError) as e:
-        logger = get_logger()
         logger.exception("Exception processing webhook update: %s", e)
         return jsonify({"status": "error", "detail": str(e)}), 500

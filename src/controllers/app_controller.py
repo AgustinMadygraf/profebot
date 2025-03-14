@@ -2,10 +2,11 @@
 Path: src/controllers/app_controller.py
 Controlador de la aplicación que maneja las solicitudes.
 """
+
+from typing import Optional
 from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
-from typing import Optional  # Import Optional from typing
 
 # Initialize logger
 logger = get_logger()
@@ -28,7 +29,8 @@ def process_update(update: dict) -> Optional[str]:
     " Procesa un update de Telegram y retorna una respuesta si es necesario "
     logger.info("Procesando update")
 
-    telegram_update = TelegramService.parse_update(update)
+    # Se actualiza para usar el método parse_update de TelegramUpdate
+    telegram_update = TelegramUpdate.parse_update(update)
     logger.debug("Update parseado: %s", telegram_update)
 
     if not telegram_update:
@@ -38,7 +40,6 @@ def process_update(update: dict) -> Optional[str]:
 
     if response:
         logger.info("Respuesta generada")
-
         send_message(telegram_update, response)
         return response
 
@@ -59,9 +60,11 @@ def send_message(telegram_update: TelegramUpdate, text: str) -> None:
     chat_id = chat["id"]
     logger.debug("Enviando mensaje al chat_id: %s", chat_id)
 
-    success, error_msg = TelegramService.send_message(chat_id, text)
+    # Se actualiza para usar el método de instancia send_message() de TelegramUpdate
+    success, error_msg = telegram_update.send_message(text)
 
     if success:
+        chat_id = telegram_update.message.get("chat", {}).get("id")
         logger.info("Mensaje enviado correctamente al chat_id: %s", chat_id)
     else:
         _handle_error(error_msg)
