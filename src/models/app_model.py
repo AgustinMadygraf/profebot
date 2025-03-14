@@ -9,9 +9,9 @@ from grpc import RpcError
 from google.api_core.exceptions import GoogleAPIError
 from pydantic import BaseModel
 import google.generativeai as genai
-import requests
 from src.interfaces.llm_client import IStreamingLLMClient
 from src.utils.logging.simple_logger import get_logger
+from src.services.message_sender import send_message as send_msg
 
 _fallback_logger = get_logger()
 class TelegramUpdate(BaseModel):
@@ -97,35 +97,9 @@ class TelegramUpdate(BaseModel):
         except ValueError:
             return None
 
-    # Nuevo método para enviar un mensaje a un chat de Telegram.
     def send_message(self, text: str) -> Tuple[bool, Optional[str]]:
-        """
-        Envía un mensaje a través de la API de Telegram usando el chat contenido en message.
-        
-        Args:
-            text: Texto a enviar.
-            
-        Returns:
-            Tuple[bool, Optional[str]]: (éxito, mensaje_error)
-        """
-        chat = self.message.get("chat") if self.message else None
-        if not (chat and "id" in chat):
-            return False, "chat_id no encontrado en el update"
-
-        chat_id = chat["id"]
-        token = os.getenv("TELEGRAM_TOKEN")
-        if not token:
-            return False, "TELEGRAM_TOKEN no definido en las variables de entorno"
-
-        send_message_url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": text}
-
-        try:
-            response = requests.post(send_message_url, json=payload, timeout=10)
-            response.raise_for_status()
-            return True, None
-        except requests.exceptions.RequestException as e:
-            return False, f"Error enviando mensaje: {str(e)}"
+        " Envía un mensaje a un chat de Telegram "
+        return send_msg(self, text)
 
 class GeminiLLMClient(IStreamingLLMClient):
     """
