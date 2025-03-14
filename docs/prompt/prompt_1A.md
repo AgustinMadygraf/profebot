@@ -16,11 +16,10 @@ El análisis debe centrarse en los siguientes aspectos clave:
    - La generación de respuestas a través de GeminiLLM (detallada en `src/models/app_model.py`).
    - La coherencia en el envío de mensajes.
 2. **Identificar áreas de refactorización**:
-   - Señalar módulos o interfaces redundantes y problemas de desacoplamiento (ver detalles en `docs/architecture/coupling_points.md`).
+   - Señalar módulos o interfaces redundantes y problemas de desacoplamiento.
    - Detectar inconsistencias en la configuración de salida (por ejemplo, diferencias en colores y modo verbose).
 3. **Proporcionar recomendaciones concretas**:
-   - Sugerir mejoras en la modularización, centralización de configuraciones y validación del flujo de datos.
-   - Proponer estrategias para implementar una suite robusta de tests (unitarios y de integración), tal como se discute en `docs/verification.md`.
+   - Sugerir mejoras en la modularización, centralización de configuraciones y validación del flujo de datos..
 
 ---
 

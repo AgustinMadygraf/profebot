@@ -1,6 +1,14 @@
 """
 Path: src/main.py
+
+Actualización de documentación:
+    La configuración del webhook ahora se centraliza en el servicio
+    WebhookConfigService (ubicado en src/services/webhook_config_service.py).
+    Este cambio permite una integración y mantenimiento más limpios del flujo
+    de configuración, consolidando la obtención de URL pública, verificación y
+    configuración del webhook en un único módulo.
 """
+
 import os
 import sys
 from flask import Flask
@@ -12,25 +20,15 @@ from src.utils.logging.simple_logger import get_logger
 logger = get_logger()
 def create_app() -> Flask:
     """Crea y configura la aplicación Flask"""
-    # Cargar las variables de entorno desde el archivo .env
     load_dotenv()
-
-
-    # Información de debugging
     logger.debug("Argumentos de línea de comandos: %s", sys.argv)
-
     app = Flask(__name__)
-
-    # Registrar el blueprint con las rutas definidas en la vista
     app.register_blueprint(app_blueprint)
-
     return app
-
 
 def main():
     "Punto de entrada principal de la aplicación"
     app = create_app()
-    # Uso explícito de la configuración inyectada
     port = int(os.getenv("PORT", "8000"))
     logger.info("Servidor iniciándose en 0.0.0.0:%s", port)
     configurator = WebhookConfigurator()

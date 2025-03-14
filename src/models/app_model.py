@@ -1,6 +1,5 @@
 """
 Path: src/models/app_model.py
-
 """
 
 import os
@@ -43,8 +42,17 @@ class TelegramUpdate(BaseModel):
 
     def _load_system_instruction(self) -> str:
         "Carga las instrucciones del sistema desde el archivo de configuración."
+        config_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../utils/config.json")
+        )
+        _fallback_logger.debug("Cargando instrucciones del sistema desde: %s", config_path)
+        if not os.path.exists(config_path):
+            _fallback_logger.error(
+                "Archivo de configuración no encontrado en: %s, usando valor por defecto.", 
+                config_path
+            )
+            return "Responde de forma amistosa."
         try:
-            config_path = os.path.join(os.path.dirname(__file__), "../utils/config.json")
             with open(config_path, "r", encoding="utf-8") as f:
                 config = json.load(f)
             system_instruction = config.get("system_instructions", "Responde de forma amistosa.")
@@ -54,13 +62,23 @@ class TelegramUpdate(BaseModel):
                     system_instruction
                 )
             else:
-                _fallback_logger.warning(
-                    "No se encontró system_instructions en config, usando valor por defecto: %s", 
+                _fallback_logger.info(
+                    "No se encontró system_instructions en config; "
+                    "se usará el valor por defecto: %s",
                     system_instruction
                 )
             return system_instruction
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            raise RuntimeError(f"Error leyendo config: {e}") from e
+        except json.JSONDecodeError as e:
+            _fallback_logger.error(
+                "Error al decodificar el archivo de configuración: %s. Usando valor por defecto.", 
+                e
+            )
+            return "Responde de forma amistosa."
+        except (OSError, IOError) as e:
+            _fallback_logger.exception(
+                "Error inesperado leyendo config: %s. Usando valor por defecto.", e
+            )
+            return "Responde de forma amistosa."
 
     # Nuevo método estático para parsear un update de Telegram.
     @staticmethod

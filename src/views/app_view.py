@@ -9,25 +9,21 @@ from src.utils.logging.simple_logger import get_logger
 logger = get_logger()
 blueprint = Blueprint('app', __name__)
 
-@blueprint.route("/", methods=["POST"])
-def telegram_webhook():
-    """Procesa un update de Telegram y retorna una respuesta"""
-    update = request.get_json()
-    logger.debug("telegram_webhook - Received update: %s", update)
-    response_message = process_update(update)
-    return jsonify({
-        "status": "ok",
-        "response": response_message if response_message else "No hay respuesta generada"
-    })
+@blueprint.route("/", methods=["GET"])
+def index():
+    "mensaje de bienvenida"
+    return jsonify({"status": "ok", "message": "Bienvenido a la API de MadyGraf"})
 
 @blueprint.route("/webhook", methods=["POST"])
 def webhook():
-    """Recibe el update de Telegram"""
-    try:
-        update = request.get_json()
-        logger.debug("webhook - Received update: %s", update)
-        response = process_update(update)
-        return jsonify({"status": "ok", "response": response})
-    except (ValueError, KeyError, TypeError) as e:
-        logger.exception("Exception processing webhook update: %s", e)
-        return jsonify({"status": "error", "detail": str(e)}), 500
+    "Endpoint para recibir actualizaciones de Telegram"
+    update = request.get_json()
+    logger.debug("webhook - Received update: %s", update)
+    response = process_update(update)
+    return jsonify({"status": "ok", "response": response})
+
+@blueprint.errorhandler(Exception)
+def handle_exception(e):
+    "Manejador global de excepciones"
+    logger.exception("Unhandled exception: %s", e)
+    return jsonify({"status": "error", "detail": "Ocurrió un error interno"}), 500

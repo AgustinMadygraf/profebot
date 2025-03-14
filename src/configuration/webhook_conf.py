@@ -1,10 +1,20 @@
 """
 Path: src/configuration/webhook_conf.py
+
+Nota de actualización:
+    La configuración del webhook se centraliza mediante el servicio WebhookConfigService
+    (ubicado en src/services/webhook_config_service.py). Este servicio se encarga de:
+      • Obtener la URL pública (primero intentando con ngrok,
+        de no obtenerla, solicitándola al usuario).
+      • Verificar el estado actual del webhook configurado en Telegram.
+      • Configurar el webhook en Telegram de ser necesario.
+    Este nuevo flujo mejora la modularidad y facilita el mantenimiento del sistema.
 """
 
 import requests
 from src.services.telegram_service import TelegramService
 from src.utils.logging.simple_logger import get_logger
+from src.services.webhook_config_service import WebhookConfigService
 
 class WebhookConfigurator:
     "Clase que maneja la configuración del webhook"
@@ -45,48 +55,10 @@ class WebhookConfigurator:
             return False, str(e)
 
     def try_configure_webhook(self):
-        """
-        Intenta configurar el webhook obteniendo primero la URL de ngrok,
-        y en caso de fallo, solicitándola al usuario.
-        Antes de configurar, verifica si el webhook ya está correctamente configurado
-        para evitar reconfiguraciones innecesarias.
-        """
-        self.logger.info("Intentando obtener la URL de ngrok desde http://127.0.0.1:4040/")
-        try:
-            response = requests.get("http://127.0.0.1:4040/api/tunnels", timeout=5)
-            data = response.json()
-            public_url = None
-            tunnels = data.get("tunnels", [])
-            if tunnels:
-                # Se toma la primera URL válida encontrada en la lista de túneles
-                for tunnel in tunnels:
-                    if "public_url" in tunnel:
-                        public_url = tunnel["public_url"]
-                        break
-            if public_url:
-                self.logger.debug("URL de ngrok obtenida: %s", public_url)
-            else:
-                self.logger.warning("No se encontró URL de ngrok válida")
-                raise RuntimeError("URL de ngrok no encontrada")
-        except requests.exceptions.RequestException as e:
-            self.logger.debug("Error al obtener URL de ngrok: %s", e)
-            public_url, _ = self.get_public_url()
-            if not public_url:
-                self.logger.error("No se proporcionó una URL válida para configurar el webhook")
-                return False
-
-        # Construir la URL deseada para el webhook
-        desired_webhook_url = f"{public_url}/webhook"
-        self.logger.debug("Verificando configuración actual del webhook...")
-        success, info = self.telegram_service.get_webhook_info()
-        if success and info.get("result"):
-            current_url = info["result"].get("url", "")
-            if current_url == desired_webhook_url:
-                self.logger.info(
-                    "El webhook ya está configurado correctamente en: %s", 
-                    desired_webhook_url
-                )
-                return True
-        self.logger.debug("Webhook no configurado o URL diferente. Procediendo a configurar...")
-        success, _ = self.configure_webhook(public_url)
-        return success
+        "Intenta configurar el webhook, solicitando la URL pública si es necesario"
+        self.logger.info("Iniciando configuración del webhook mediante WebhookConfigService")
+        config_service = WebhookConfigService()
+        result = config_service.run_configuration()
+        if not result:
+            self.logger.error("Fallo en la configuración del webhook.")
+        return result
