@@ -48,25 +48,30 @@ class WebhookConfigService:
             return url
         return self._get_public_url_manual()
 
-    def _desired_webhook_url(self, public_url: str) -> str:
-        "Construye la URL deseada para el webhook a partir de la URL pública."
-        return f"{public_url}/webhook"
+    def _desired_webhook_url(self, public_url: str, channel: str = "telegram") -> str:
+        "Construye la URL deseada para el webhook a partir de la URL pública y el canal."
+        if channel == "telegram":
+            return f"{public_url}/webhook"
+        elif channel == "whatsapp":
+            return f"{public_url}/whatsapp-webhook"
+        else:
+            return f"{public_url}/{channel}-webhook"
 
-    def verify_webhook(self, public_url):
-        "Verifica si el webhook ya está configurado con la URL proporcionada"
-        desired_webhook_url = self._desired_webhook_url(public_url)
+    def verify_webhook(self, public_url, channel: str = "telegram"):
+        "Verifica si el webhook ya está configurado con la URL proporcionada y el canal"
+        desired_webhook_url = self._desired_webhook_url(public_url, channel)
         success, info = self.telegram_service.get_webhook_info()
         if success and info.get("result", {}).get("url", "") == desired_webhook_url:
             self.logger.info(
-                "El webhook ya está configurado correctamente en: %s", 
+                "El webhook ya está configurado correctamente en: %s",
                 desired_webhook_url
             )
             return True
         return False
 
-    def configure_webhook(self, public_url):
-        "Configura el webhook con la URL proporcionada"
-        desired_webhook_url = self._desired_webhook_url(public_url)
+    def configure_webhook(self, public_url, channel: str = "telegram"):
+        "Configura el webhook con la URL proporcionada y el canal"
+        desired_webhook_url = self._desired_webhook_url(public_url, channel)
         self.logger.debug("Configurando webhook con la URL: %s", desired_webhook_url)
         success, error = self.telegram_service.configure_webhook(desired_webhook_url)
         if success:
@@ -75,7 +80,7 @@ class WebhookConfigService:
         self.logger.error("Error configurando webhook: %s", error)
         return False
 
-    def run_configuration(self):
+    def run_configuration(self, channel: str = "telegram"):
         """
         Ejecuta el flujo unificado de configuración del webhook.
 
@@ -88,6 +93,6 @@ class WebhookConfigService:
         if not public_url:
             self.logger.error("No se obtuvo una URL pública válida")
             return False
-        if self.verify_webhook(public_url):
+        if self.verify_webhook(public_url, channel):
             return True
-        return self.configure_webhook(public_url)
+        return self.configure_webhook(public_url, channel)

@@ -25,16 +25,20 @@ class WebhookConfigurator:
 
     # Métodos duplicados removidos: get_public_url y configure_webhook
 
-    def try_configure_webhook(self):
+    def try_configure_webhook(self, channel: str = "telegram"):
         """
         Integra el flujo centralizado de configuración del webhook
         delegando en WebhookConfigService.
 
-        Actúa como única interfaz para iniciar la configuración del webhook.
+        Parámetro:
+           channel: Canal de mensajería ("telegram" o "whatsapp")
         """
-        self.logger.info("Iniciando configuración del webhook mediante WebhookConfigService")
+        self.logger.info(
+            "Iniciando configuración del webhook mediante WebhookConfigService para %s", 
+            channel
+        )
         config_service = WebhookConfigService()
-        result = config_service.run_configuration()
+        result = config_service.run_configuration(channel)
         if not result:
-            self.logger.error("Fallo en la configuración del webhook.")
+            self.logger.error("Fallo en la configuración del webhook para %s.", channel)
         return result
