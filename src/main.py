@@ -10,6 +10,7 @@ Actualización de documentación:
 """
 
 import sys
+import threading
 from flask import Flask
 from src.configuration.webhook_conf import WebhookConfigurator
 from src.views.app_view import blueprint as app_blueprint
@@ -29,9 +30,9 @@ def main():
     app = create_app()
     port = CentralConfig.PORT
     logger.info("Servidor iniciándose en 0.0.0.0:%s", port)
-    # Utiliza la configuración unificada del webhook a través de WebhookConfigService
+    # Ejecuta la configuración del webhook en un hilo en segundo plano
     configurator = WebhookConfigurator()
-    configurator.try_configure_webhook()
+    threading.Thread(target=configurator.try_configure_webhook, daemon=True).start()
     try:
         app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
     except (OSError, RuntimeError) as e:

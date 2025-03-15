@@ -48,9 +48,13 @@ class WebhookConfigService:
             return url
         return self._get_public_url_manual()
 
+    def _desired_webhook_url(self, public_url: str) -> str:
+        "Construye la URL deseada para el webhook a partir de la URL pública."
+        return f"{public_url}/webhook"
+
     def verify_webhook(self, public_url):
         "Verifica si el webhook ya está configurado con la URL proporcionada"
-        desired_webhook_url = f"{public_url}/webhook"
+        desired_webhook_url = self._desired_webhook_url(public_url)
         success, info = self.telegram_service.get_webhook_info()
         if success and info.get("result", {}).get("url", "") == desired_webhook_url:
             self.logger.info(
@@ -62,16 +66,24 @@ class WebhookConfigService:
 
     def configure_webhook(self, public_url):
         "Configura el webhook con la URL proporcionada"
-        self.logger.debug("Configurando webhook con la URL pública: %s", public_url)
-        success, error = self.telegram_service.configure_webhook(public_url)
+        desired_webhook_url = self._desired_webhook_url(public_url)
+        self.logger.debug("Configurando webhook con la URL: %s", desired_webhook_url)
+        success, error = self.telegram_service.configure_webhook(desired_webhook_url)
         if success:
-            self.logger.info("Webhook configurado correctamente en: %s", public_url)
+            self.logger.info("Webhook configurado correctamente en: %s", desired_webhook_url)
             return True
         self.logger.error("Error configurando webhook: %s", error)
         return False
 
     def run_configuration(self):
-        " Ejecuta el flujo de configuración del webhook "
+        """
+        Ejecuta el flujo unificado de configuración del webhook.
+
+        Secuencia:
+          1. Obtención de la URL pública (automática o manual).
+          2. Verificación de si el webhook ya está configurado.
+          3. Configuración del webhook en Telegram si es necesario.
+        """
         public_url = self.get_public_url()
         if not public_url:
             self.logger.error("No se obtuvo una URL pública válida")

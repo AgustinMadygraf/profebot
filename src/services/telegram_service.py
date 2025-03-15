@@ -7,6 +7,7 @@ Encapsula toda la lógica de comunicación con Telegram.
 from typing import Tuple, Any, Optional
 import requests
 from src.configuration.central_config import CentralConfig
+from src.utils.validation_utils import validate_telegram_token
 
 class TelegramService:
     """Servicio para interactuar con la API de Telegram."""
@@ -14,20 +15,12 @@ class TelegramService:
     @staticmethod
     def validate_token() -> Tuple[bool, Optional[str]]:
         """
-        Valida que el token de Telegram esté configurado y tenga un formato básico correcto.
-        
-        Returns:
-            Tuple[bool, Optional[str]]: (éxito, mensaje_error)
+        Valida que el token de Telegram esté configurado y tenga el formato adecuado.
+
+        Se delega en la función validate_telegram_token de src/utils/validation_utils.py
+        para centralizar la validación.
         """
-        token = CentralConfig.TELEGRAM_TOKEN
-        if not token:
-            return False, "TELEGRAM_TOKEN no está definido en las variables de entorno"
-
-        # Validar formato básico del token (debe contener :)
-        if ":" not in token:
-            return False, "TELEGRAM_TOKEN tiene un formato inválido"
-
-        return True, None
+        return validate_telegram_token()
 
     @staticmethod
     def configure_webhook(url: str) -> Tuple[bool, Optional[str]]:

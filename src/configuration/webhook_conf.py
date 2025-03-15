@@ -26,7 +26,12 @@ class WebhookConfigurator:
     # Métodos duplicados removidos: get_public_url y configure_webhook
 
     def try_configure_webhook(self):
-        "Intenta configurar el webhook delegando en WebhookConfigService"
+        """
+        Integra el flujo centralizado de configuración del webhook
+        delegando en WebhookConfigService.
+
+        Actúa como única interfaz para iniciar la configuración del webhook.
+        """
         self.logger.info("Iniciando configuración del webhook mediante WebhookConfigService")
         config_service = WebhookConfigService()
         result = config_service.run_configuration()
