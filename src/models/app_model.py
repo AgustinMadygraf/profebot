@@ -29,7 +29,6 @@ class TelegramUpdate(BaseModel):
             if not api_key:
                 return "Error: GEMINI_API_KEY no configurado."
             system_instruction = self._load_system_instruction()
-            # Utilizar GeminiService en lugar de GeminiLLMClient
             client = GeminiService(api_key, system_instruction)
             try:
                 return client.send_message(text)
@@ -78,18 +77,3 @@ class TelegramUpdate(BaseModel):
             return False, "chat_id no encontrado en el update"
         service = TelegramService()
         return service.send_message(self.message["chat"]["id"], text)
-
-# Eliminamos la definición duplicada del cliente Gemini.
-# class GeminiLLMClient(IStreamingLLMClient):
-#     """
-#     Encapsula la lógica de interacción con el modelo de Gemini,
-#     implementando envío de mensajes y streaming.
-#     """
-#     def __init__(self, api_key: str, system_instruction: str, logger=None):
-#         ...existing code...
-#     def send_message(self, message: str) -> str:
-#         ...existing code...
-#     def send_message_streaming(self, message: str, chunk_size: int = 30) -> str:
-#         ...existing code...
-#     def _start_chat_session(self):
-#         ...existing code...
