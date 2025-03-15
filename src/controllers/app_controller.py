@@ -2,11 +2,11 @@
 Path: src/controllers/app_controller.py
 Controlador de la aplicación que maneja las solicitudes.
 """
-
-from typing import Optional
+from typing import Tuple, Optional
+import requests
 from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
-from src.services.message_sender import send_message as send_msg
+import src.configuration.central_config as central_config
 
 # Initialize logger
 logger = get_logger()
@@ -47,3 +47,23 @@ def send_message(telegram_update: TelegramUpdate, text: str) -> None:
                     telegram_update.message.get("chat", {}).get("id"))
     else:
         logger.error("Error enviando mensaje: %s", error_msg)
+
+def send_msg(telegram_update, text: str) -> Tuple[bool, Optional[str]]:
+    " Envía un mensaje a un chat de Telegram "
+    chat = telegram_update.message.get("chat") if telegram_update.message else None
+    if not (chat and "id" in chat):
+        return False, "chat_id no encontrado en el update"
+
+    token = central_config.CentralConfig.TELEGRAM_TOKEN
+    if not token:
+        return False, "TELEGRAM_TOKEN no definido en las variables de entorno"
+
+    send_message_url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {"chat_id": chat["id"], "text": text}
+    try:
+        response = requests.post(send_message_url, json=payload, timeout=10)
+        response.raise_for_status()
+        return True, None
+    except requests.exceptions.RequestException as e:
+        logger.exception("Error enviando mensaje:")
+        return False, f"Error enviando mensaje: {str(e)}"

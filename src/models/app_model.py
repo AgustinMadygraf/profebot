@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
 from src.utils.logging.simple_logger import get_logger
-from src.services.message_sender import send_message as send_msg
+from src.controllers.app_controller import send_msg
 from src.services.config_service import get_system_instructions
 from src.utils.validators import validate_telegram_update
 from src.configuration.central_config import CentralConfig
