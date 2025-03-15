@@ -36,7 +36,8 @@ class IStreamingLLMClient(IBaseLLMClient, ABC):
     
     Guía de uso:
     - Las implementaciones deben extender esta interfaz.
-    - El método send_message_streaming debe enviar el mensaje y retornar la respuesta en modo streaming,
+    - El método send_message_streaming debe enviar el mensaje y
+      retornar la respuesta en modo streaming,
       utilizando un mecanismo de chunking definido (por ejemplo, usando chunk_size).
     - Se recomienda manejar las excepciones y loguear errores utilizando el logger inyectado.
     """
