@@ -28,14 +28,15 @@ class GeminiService:
             system_instruction=self.system_instruction
         )
         self.chat_session = None
-        self.history_manager = ConversationHistoryManager()  # Usar módulo centralizado
+        self.history_manager = ConversationHistoryManager()
         logger.info("GeminiService inicializado correctamente.")
 
     def _start_chat_session(self):
+        " Start a new chat session if the current one is not active. "
         if self.chat_session:
             try:
-                # Verificar si la sesión responde con 'ping'
                 _ = self.chat_session.send_message("ping")
+                logger.debug("Chat session ping successful.")
             except (RpcError, GoogleAPIError) as e:
                 logger.warning("Chat session ping failed, restarting session. Error: %s", e)
                 self.chat_session = None
@@ -43,6 +44,7 @@ class GeminiService:
             try:
                 self.chat_session = self.model.start_chat()
                 logger.info("Chat session started successfully.")
+                logger.debug("New chat session initiated.")
             except (RpcError, GoogleAPIError) as e:
                 logger.exception("Failed to start chat session: %s", e)
                 raise
@@ -50,16 +52,19 @@ class GeminiService:
     def send_message(self, message: str) -> str:
         " Send a message to the Gemini model and return the full response as text. "
         self._start_chat_session()
-        # Registrar mensaje del usuario en el historial a través del history manager
         try:
             self.history_manager.add_message("user", message)
+            logger.debug("Added user message to history: %s", message)
+            logger.debug("Current history: %s", self.history_manager.get_history())
         except (RpcError, GoogleAPIError) as hist_e:
             logger.warning("Error adding user message to history: %s", hist_e)
         try:
             response = self.chat_session.send_message(message)
-            # Registrar respuesta del asistente en el historial
+            logger.debug("Received response: %s", response.text)
             try:
                 self.history_manager.add_message("assistant", response.text)
+                logger.debug("Added assistant response to history: %s", response.text)
+                logger.debug("Current history: %s", self.history_manager.get_history())
             except (RpcError, GoogleAPIError) as hist_e:
                 logger.warning("Error adding assistant response to history: %s", hist_e)
             return response.text
@@ -85,11 +90,16 @@ class GeminiService:
         try:
             # Registrar mensaje del usuario en el historial
             self.history_manager.add_message("user", message)
+            logger.debug("Added user streaming message to history: %s", message)
+            logger.debug("Current history: %s", self.history_manager.get_history())
             response = self.chat_session.send_message(message)
             full_text = response.text
+            logger.debug("Received streaming response: %s", full_text)
             # Registrar respuesta completa del asistente en el historial
             try:
                 self.history_manager.add_message("assistant", full_text)
+                logger.debug("Added streaming assistant response to history.")
+                logger.debug("Current history: %s", self.history_manager.get_history())
             except (RpcError, GoogleAPIError) as hist_e:
                 logger.warning("Error adding streaming response to history: %s", hist_e)
             return ''.join(

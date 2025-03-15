@@ -3,12 +3,13 @@ Path: src/views/app_view.py
 """
 
 from flask import Blueprint, request, jsonify
-from src.controllers.app_controller import process_update
+from src.controllers.app_controller import AppController
 from src.utils.logging.simple_logger import get_logger, log_exception
 from src.configuration.central_config import CentralConfig
 
 logger = get_logger()
 blueprint = Blueprint('app', __name__)
+controller = AppController()
 
 @blueprint.route("/", methods=["GET"])
 def index():
@@ -20,7 +21,7 @@ def webhook():
     "Endpoint para recibir actualizaciones de Telegram, integrando el flujo unificado del webhook."
     update = request.get_json()
     logger.debug("webhook - Received update: %s", update)
-    response = process_update(update)
+    response = controller.process_update(update)
     return jsonify({"status": "ok", "response": response})
 
 @blueprint.errorhandler(Exception)
