@@ -6,6 +6,7 @@ from typing import Optional
 from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
+from src.utils.logging.simple_logger import log_exception
 
 # Initialize logger
 logger = get_logger()
@@ -30,7 +31,7 @@ def process_update(update: dict) -> Optional[str]:
         logger.info("Update recibido sin respuesta generada")
         return None
     except (ValueError, KeyError) as e:
-        logger.exception("Excepción en process_update: %s", e)
+        log_exception(e)
         logger.error("Error inesperado al procesar el update")
         return None
 
