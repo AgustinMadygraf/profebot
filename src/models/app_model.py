@@ -9,10 +9,10 @@ from pydantic import BaseModel
 import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
 from src.utils.logging.simple_logger import get_logger
-from src.controllers.app_controller import send_msg
 from src.services.config_service import get_system_instructions
-from src.utils.validators import validate_telegram_update
 from src.configuration.central_config import CentralConfig
+from src.services.gemini_service import GeminiService
+from src.services.telegram_service import TelegramService
 
 _fallback_logger = get_logger()
 class TelegramUpdate(BaseModel):
@@ -31,7 +31,8 @@ class TelegramUpdate(BaseModel):
             if not api_key:
                 return "Error: GEMINI_API_KEY no configurado."
             system_instruction = self._load_system_instruction()
-            client = GeminiLLMClient(api_key, system_instruction)
+            # Utilizar GeminiService en lugar de GeminiLLMClient
+            client = GeminiService(api_key, system_instruction)
             try:
                 return client.send_message(text)
             except (RpcError, GoogleAPIError) as e:
@@ -68,15 +69,19 @@ class TelegramUpdate(BaseModel):
         """
         try:
             parsed = TelegramUpdate.parse_obj(update)
-            if not validate_telegram_update(update):
-                return None
+            # Se elimina la validación externa redundante (validate_telegram_update)
+            # if not validate_telegram_update(update):
+            #     return None
             return parsed
         except ValueError:
             return None
 
     def send_message(self, text: str) -> Tuple[bool, Optional[str]]:
         " Envía un mensaje a un chat de Telegram "
-        return send_msg(self, text)
+        if not (self.message and "chat" in self.message and "id" in self.message["chat"]):
+            return False, "chat_id no encontrado en el update"
+        service = TelegramService()
+        return service.send_message(self.message["chat"]["id"], text)
 
 class GeminiLLMClient(IStreamingLLMClient):
     """

@@ -68,3 +68,26 @@ class TelegramService:
             return True, response.json()
         except requests.exceptions.RequestException as e:
             return False, f"Error obteniendo información del webhook: {str(e)}"
+
+    def send_message(self, chat_id: int, text: str) -> Tuple[bool, Optional[str]]:
+        """
+        Envía un mensaje a un chat de Telegram.
+        
+        Args:
+            chat_id: ID del chat destinatario.
+            text: Contenido del mensaje.
+            
+        Returns:
+            Tuple[bool, Optional[str]]: (éxito, mensaje de error en caso de fallar)
+        """
+        token = CentralConfig.TELEGRAM_TOKEN
+        if not token:
+            return False, "TELEGRAM_TOKEN no definido"
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        payload = {"chat_id": chat_id, "text": text}
+        try:
+            response = requests.post(url, json=payload, timeout=10)
+            response.raise_for_status()
+            return True, None
+        except requests.exceptions.RequestException as e:
+            return False, f"Error enviando mensaje: {e}"

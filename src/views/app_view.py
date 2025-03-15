@@ -4,7 +4,7 @@ Path: src/views/app_view.py
 
 from flask import Blueprint, request, jsonify
 from src.controllers.app_controller import process_update
-from src.utils.logging.simple_logger import get_logger
+from src.utils.logging.simple_logger import get_logger, log_exception
 from src.configuration.central_config import CentralConfig
 
 logger = get_logger()
@@ -26,7 +26,7 @@ def webhook():
 @blueprint.errorhandler(Exception)
 def handle_exception(e):
     "Manejador global de excepciones"
-    logger.exception("Unhandled exception: %s", e)
+    log_exception(e)
     return jsonify({"status": "error", "detail": "Ocurrió un error interno"}), 500
 
 @blueprint.route("/debug-config", methods=["GET"])

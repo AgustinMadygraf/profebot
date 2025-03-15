@@ -15,7 +15,7 @@ from flask import Flask
 from src.configuration.webhook_conf import WebhookConfigurator
 from src.views.app_view import blueprint as app_blueprint
 from src.configuration.central_config import CentralConfig
-from src.utils.logging.simple_logger import get_logger
+from src.utils.logging.simple_logger import get_logger, log_exception
 
 logger = get_logger()
 def create_app() -> Flask:
@@ -36,7 +36,6 @@ def main():
     try:
         app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
     except (OSError, RuntimeError) as e:
-        logger.error("Error en la ejecución del servidor: %s", e)
-        logger.debug("Caught exception: %s", e)
+        log_exception(e)
     finally:
         logger.info("El servidor se ha detenido")

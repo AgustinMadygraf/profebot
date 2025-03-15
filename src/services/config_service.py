@@ -4,7 +4,7 @@ Path: src/services/config_service.py
 
 import pymysql
 from src.configuration.central_config import CentralConfig
-from src.utils.logging.simple_logger import get_logger
+from src.utils.logging.simple_logger import get_logger, log_exception
 
 logger = get_logger()
 
@@ -67,5 +67,5 @@ def get_system_instructions() -> str:
                 connection.commit()
                 return default_instructions
     except pymysql.MySQLError as e:
-        logger.exception("Error conectando a MySQL: %s", e)
+        log_exception(e)
     return "Responde de forma amistosa."

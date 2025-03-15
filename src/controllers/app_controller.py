@@ -2,11 +2,10 @@
 Path: src/controllers/app_controller.py
 Controlador de la aplicación que maneja las solicitudes.
 """
-from typing import Tuple, Optional
-import requests
+from typing import Optional
 from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
-import src.configuration.central_config as central_config
+from src.services.telegram_service import TelegramService
 
 # Initialize logger
 logger = get_logger()
@@ -40,30 +39,16 @@ def generate_response(telegram_update: TelegramUpdate) -> Optional[str]:
     return telegram_update.get_response()
 
 def send_message(telegram_update: TelegramUpdate, text: str) -> None:
-    " Envía un mensaje a un chat de Telegram "
-    success, error_msg = send_msg(telegram_update, text)
+    "Envía un mensaje a un chat de Telegram usando TelegramService"
+    if not (telegram_update.message and
+            "chat" in telegram_update.message and 
+            "id" in telegram_update.message["chat"]):
+        logger.error("chat_id no encontrado en el update")
+        return
+    service = TelegramService()
+    success, error_msg = service.send_message(telegram_update.message["chat"]["id"], text)
     if success:
-        logger.info("Mensaje enviado correctamente al chat_id: %s",
-                    telegram_update.message.get("chat", {}).get("id"))
+        chat_id = telegram_update.message["chat"]["id"]
+        logger.info("Mensaje enviado correctamente al chat_id: %s", chat_id)
     else:
         logger.error("Error enviando mensaje: %s", error_msg)
-
-def send_msg(telegram_update, text: str) -> Tuple[bool, Optional[str]]:
-    " Envía un mensaje a un chat de Telegram "
-    chat = telegram_update.message.get("chat") if telegram_update.message else None
-    if not (chat and "id" in chat):
-        return False, "chat_id no encontrado en el update"
-
-    token = central_config.CentralConfig.TELEGRAM_TOKEN
-    if not token:
-        return False, "TELEGRAM_TOKEN no definido en las variables de entorno"
-
-    send_message_url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = {"chat_id": chat["id"], "text": text}
-    try:
-        response = requests.post(send_message_url, json=payload, timeout=10)
-        response.raise_for_status()
-        return True, None
-    except requests.exceptions.RequestException as e:
-        logger.exception("Error enviando mensaje:")
-        return False, f"Error enviando mensaje: {str(e)}"
