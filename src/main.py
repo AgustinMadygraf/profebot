@@ -31,6 +31,7 @@ def main():
     app = create_app()
     port = int(os.getenv("PORT", "8000"))
     logger.info("Servidor iniciándose en 0.0.0.0:%s", port)
+    # Utiliza la configuración unificada del webhook a través de WebhookConfigService
     configurator = WebhookConfigurator()
     configurator.try_configure_webhook()
     try:

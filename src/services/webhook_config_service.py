@@ -1,5 +1,10 @@
 """
 Path: src/services/webhook_config_service.py
+
+Actualización de documentación:
+  Este servicio centraliza la configuración del webhook, incluyendo la obtención de la URL pública,
+  verificación y configuración del webhook. Es utilizado exclusivamente por WebhookConfigurator para
+  unificar el flujo de configuración del webhook.
 """
 
 import requests
@@ -12,8 +17,8 @@ class WebhookConfigService:
         self.logger = get_logger()
         self.telegram_service = TelegramService()
 
-    def get_public_url(self):
-        "Obtiene la URL pública para configurar el webhook"
+    def _get_public_url_auto(self):
+        "Intenta obtener la URL pública automáticamente mediante ngrok."
         self.logger.info("Intentando obtener URL pública desde ngrok")
         try:
             response = requests.get("http://127.0.0.1:4040/api/tunnels", timeout=5)
@@ -26,11 +31,22 @@ class WebhookConfigService:
             self.logger.warning("No se encontró URL de ngrok válida")
         except requests.exceptions.RequestException as e:
             self.logger.debug("Error al obtener URL de ngrok: %s", e)
+        return None
+
+    def _get_public_url_manual(self):
+        "Solicita al usuario la URL pública de forma manual y valida el formato."
         public_url = input("Ingrese la URL pública para configurar el webhook: ").strip()
         if public_url and public_url.startswith(("http://", "https://")):
             return public_url
         self.logger.error("URL inválida proporcionada.")
         return None
+
+    def get_public_url(self):
+        "Obtiene la URL pública para configurar el webhook usando métodos automático y manual."
+        url = self._get_public_url_auto()
+        if url:
+            return url
+        return self._get_public_url_manual()
 
     def verify_webhook(self, public_url):
         "Verifica si el webhook ya está configurado con la URL proporcionada"

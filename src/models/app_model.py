@@ -22,7 +22,7 @@ class TelegramUpdate(BaseModel):
         " Procesa el mensaje recibido y retorna una respuesta"
         if self.message:
             text = self.message.get('text')
-            if text == 'test':
+            if text.lower() == 'test':
                 return (
                     "¡Hola! ¿Cómo puedo ayudarte? <modo test>."
                 )

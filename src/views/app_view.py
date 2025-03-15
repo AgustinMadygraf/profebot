@@ -16,7 +16,7 @@ def index():
 
 @blueprint.route("/webhook", methods=["POST"])
 def webhook():
-    "Endpoint para recibir actualizaciones de Telegram"
+    "Endpoint para recibir actualizaciones de Telegram, integrando el flujo unificado del webhook."
     update = request.get_json()
     logger.debug("webhook - Received update: %s", update)
     response = process_update(update)

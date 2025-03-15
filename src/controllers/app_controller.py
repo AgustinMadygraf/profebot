@@ -12,25 +12,28 @@ from src.services.message_sender import send_message as send_msg
 logger = get_logger()
 
 def process_update(update: dict) -> Optional[str]:
-    " Procesa un update de Telegram y retorna una respuesta si es necesario "
-    logger.info("Procesando update")
+    " Procesa un update de Telegram y genera una respuesta "
+    try:
+        logger.info("Procesando update")
+        telegram_update = TelegramUpdate.parse_update(update)
+        logger.debug("Update parseado: %s", telegram_update)
 
-    # Se actualiza para usar el método parse_update de TelegramUpdate
-    telegram_update = TelegramUpdate.parse_update(update)
-    logger.debug("Update parseado: %s", telegram_update)
+        if not telegram_update:
+            _handle_error("No se pudo parsear el update")
+            return None
+        response = generate_response(telegram_update)
 
-    if not telegram_update:
-        _handle_error("No se pudo parsear el update")
+        if response:
+            logger.info("Respuesta generada")
+            send_message(telegram_update, response)
+            return response
+
+        logger.info("Update recibido sin respuesta generada")
         return None
-    response = generate_response(telegram_update)
-
-    if response:
-        logger.info("Respuesta generada")
-        send_message(telegram_update, response)
-        return response
-
-    logger.info("Update recibido sin respuesta generada")
-    return None
+    except (ValueError, KeyError) as e:
+        logger.exception("Excepción en process_update: %s", e)
+        _handle_error("Error inesperado al procesar el update")
+        return None
 
 def _handle_error(message: str) -> None:
     logger.error("Error: %s", message)
