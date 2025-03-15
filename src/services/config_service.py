@@ -2,8 +2,8 @@
 Path: src/services/config_service.py
 """
 
-import os
 import pymysql
+from src.configuration.central_config import CentralConfig
 from src.utils.logging.simple_logger import get_logger
 
 logger = get_logger()
@@ -14,33 +14,28 @@ def get_system_instructions() -> str:
     y retorna el valor de system_instructions. En caso de error,
     retorna una instrucción por defecto.
     """
-    db_host = os.getenv("DB_HOST")
-    db_user = os.getenv("DB_USER")
-    db_password = os.getenv("DB_PASSWORD")
-    db_name = os.getenv("DB_NAME")
-
     try:
         # Conectar sin especificar la base de datos para poder crearla si no existe
         connection = pymysql.connect(
-            host=db_host,
-            user=db_user,
-            password=db_password
+            host=CentralConfig.DB_HOST,
+            user=CentralConfig.DB_USER,
+            password=CentralConfig.DB_PASSWORD
         )
         with connection.cursor() as cursor:
-            cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name};")
-            logger.debug("Base de datos '%s' verificada/creada.", db_name)
+            cursor.execute(f"CREATE DATABASE IF NOT EXISTS {CentralConfig.DB_NAME};")
+            logger.debug("Base de datos '%s' verificada/creada.", CentralConfig.DB_NAME)
         connection.close()
 
         # Conectar a la base de datos especificada
         connection = pymysql.connect(
-            host=db_host,
-            user=db_user,
-            password=db_password,
-            database=db_name
+            host=CentralConfig.DB_HOST,
+            user=CentralConfig.DB_USER,
+            password=CentralConfig.DB_PASSWORD,
+            database=CentralConfig.DB_NAME
         )
         logger.debug(
             "Valores de conexión: DB_HOST=%s, DB_USER=%s, DB_NAME=%s",
-            db_host, db_user, db_name
+            CentralConfig.DB_HOST, CentralConfig.DB_USER, CentralConfig.DB_NAME
         )
         with connection.cursor() as cursor:
             # Crear la tabla 'configuration' sin valor por defecto en system_instructions

@@ -2,10 +2,10 @@
 Path: src/services/message_sender.py
 """
 
-import os
 from typing import Tuple, Optional
 import requests
 from src.utils.logging.simple_logger import get_logger
+import src.configuration.central_config as central_config
 
 logger = get_logger()
 
@@ -15,7 +15,7 @@ def send_message(telegram_update, text: str) -> Tuple[bool, Optional[str]]:
     if not (chat and "id" in chat):
         return False, "chat_id no encontrado en el update"
 
-    token = os.getenv("TELEGRAM_TOKEN")
+    token = central_config.CentralConfig.TELEGRAM_TOKEN
     if not token:
         return False, "TELEGRAM_TOKEN no definido en las variables de entorno"
 

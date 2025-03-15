@@ -3,10 +3,11 @@ Path: src/utils/validators.py
 """
 
 def validate_telegram_update(update: dict) -> bool:
-    " Valida un objeto update de Telegram "
+    " Valida un objeto update de Telegram, considerando campos alternativos como 'edited_message'. "
     if not isinstance(update, dict):
         return False
-    message = update.get("message")
+    # Permitir que el update contenga 'message' o 'edited_message'
+    message = update.get("message") or update.get("edited_message")
     if not message or not isinstance(message, dict):
         return False
     chat = message.get("chat")

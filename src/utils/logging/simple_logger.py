@@ -6,6 +6,17 @@ import sys
 import logging
 import colorlog
 
+# Configuración central del logger
+logger = logging.getLogger("profebot")
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+# Handler para salida en consola
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.DEBUG)
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
 def get_logger() -> logging.Logger:
     """
     Obtiene un logger simple para la aplicación,
@@ -14,18 +25,18 @@ def get_logger() -> logging.Logger:
     se formatean para tener siempre 15 y 5 caracteres respectivamente, y el
     número de línea se reserva en 3 dígitos con relleno de ceros.
     """
-    logger = logging.getLogger("app_logger")
+    app_logger = logging.getLogger("app_logger")
 
     # Configurar el nivel del logger según si se pasó '--verbose' en la línea de comandos
     if '--verbose' in sys.argv:
-        logger.setLevel(logging.DEBUG)
+        app_logger.setLevel(logging.DEBUG)
     else:
-        logger.setLevel(logging.INFO)
+        app_logger.setLevel(logging.INFO)
 
     # Verifica si ya existen handlers para evitar duplicaciones
-    if not logger.handlers:
-        console_handler = logging.StreamHandler()
-        formatter = colorlog.ColoredFormatter(
+    if not app_logger.handlers:
+        app_console_handler = logging.StreamHandler()
+        app_formatter = colorlog.ColoredFormatter(
             "%(log_color)s%(filename)15.15s:%(lineno)03d - %(levelname)-5.5s - %(message)s",
             log_colors={
                 'DEBUG':    'cyan',
@@ -35,7 +46,13 @@ def get_logger() -> logging.Logger:
                 'CRITICAL': 'red,bg_white',
             }
         )
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
+        app_console_handler.setFormatter(app_formatter)
+        app_logger.addHandler(app_console_handler)
 
-    return logger
+    return app_logger
+
+def log_exception(e: Exception):
+    """
+    Función utilitaria para registrar excepciones de forma centralizada.
+    """
+    logger.exception("Exception occurred: %s", e)

@@ -19,7 +19,7 @@ def process_update(update: dict) -> Optional[str]:
         logger.debug("Update parseado: %s", telegram_update)
 
         if not telegram_update:
-            _handle_error("No se pudo parsear el update")
+            logger.error("No se pudo parsear el update")
             return None
         response = generate_response(telegram_update)
 
@@ -32,11 +32,8 @@ def process_update(update: dict) -> Optional[str]:
         return None
     except (ValueError, KeyError) as e:
         logger.exception("Excepción en process_update: %s", e)
-        _handle_error("Error inesperado al procesar el update")
+        logger.error("Error inesperado al procesar el update")
         return None
-
-def _handle_error(message: str) -> None:
-    logger.error("Error: %s", message)
 
 def generate_response(telegram_update: TelegramUpdate) -> Optional[str]:
     " Genera una respuesta para un objeto TelegramUpdate "
@@ -49,4 +46,4 @@ def send_message(telegram_update: TelegramUpdate, text: str) -> None:
         logger.info("Mensaje enviado correctamente al chat_id: %s",
                     telegram_update.message.get("chat", {}).get("id"))
     else:
-        _handle_error(error_msg)
+        logger.error("Error enviando mensaje: %s", error_msg)

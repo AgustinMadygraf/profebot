@@ -25,11 +25,6 @@ class IBaseLLMClient(ABC):
         """
         raise NotImplementedError
 
-    def another_method(self):
-        "Another method"
-        raise NotImplementedError
-
-
 class IStreamingLLMClient(IBaseLLMClient, ABC):
     """
     Interfaz para clientes LLM que también soportan el envío de mensajes en modo streaming.
@@ -46,8 +41,4 @@ class IStreamingLLMClient(IBaseLLMClient, ABC):
         """
         Envía un mensaje al modelo LLM y retorna la respuesta en modo streaming.
         """
-        raise NotImplementedError
-
-    def another_method(self):
-        "Another method"
         raise NotImplementedError

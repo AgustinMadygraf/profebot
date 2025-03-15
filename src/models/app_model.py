@@ -2,7 +2,6 @@
 Path: src/models/app_model.py
 """
 
-import os
 from typing import Optional, Dict, Any, Tuple
 from grpc import RpcError
 from google.api_core.exceptions import GoogleAPIError
@@ -13,6 +12,7 @@ from src.utils.logging.simple_logger import get_logger
 from src.services.message_sender import send_message as send_msg
 from src.services.config_service import get_system_instructions
 from src.utils.validators import validate_telegram_update
+from src.configuration.central_config import CentralConfig
 
 _fallback_logger = get_logger()
 class TelegramUpdate(BaseModel):
@@ -27,7 +27,7 @@ class TelegramUpdate(BaseModel):
                 return (
                     "¡Hola! ¿Cómo puedo ayudarte? <modo test>."
                 )
-            api_key = os.getenv("GEMINI_API_KEY")
+            api_key = CentralConfig.GEMINI_API_KEY
             if not api_key:
                 return "Error: GEMINI_API_KEY no configurado."
             system_instruction = self._load_system_instruction()
@@ -125,13 +125,18 @@ class GeminiLLMClient(IStreamingLLMClient):
     def send_message_streaming(self, message: str, chunk_size: int = 30) -> str:
         """
         Envía un mensaje al modelo y retorna la respuesta en modo streaming,
-        optimizada usando list comprehension.
+        dividiéndola en chunks de tamaño 'chunk_size'. Se valida que chunk_size sea
+        un valor positivo; en caso contrario, se ajusta a 30.
         """
         self._start_chat_session()
+        if chunk_size <= 0:
+            self.logger.warning("chunk_size (%d) no es válido. Se ajusta a 30.", chunk_size)
+            chunk_size = 30
         try:
             response = self.chat_session.send_message(message)
+            # Mejorar la división de la respuesta en chunks usando un generador
             full_response = ''.join(
-                [response.text[i:i + chunk_size] for i in range(0, len(response.text), chunk_size)]
+                response.text[i:i + chunk_size] for i in range(0, len(response.text), chunk_size)
             )
             return full_response
         except Exception as e:
@@ -140,12 +145,19 @@ class GeminiLLMClient(IStreamingLLMClient):
 
     def _start_chat_session(self):
         """
-        Inicia la sesión de chat si no existe, con manejo de errores.
+        Inicia la sesión de chat si no existe; si ya existe, intenta validar la sesión
+        enviando un mensaje de prueba ("ping"). Si la sesión actual falla, se reinicia.
         """
+        if self.chat_session:
+            try:
+                _ = self.chat_session.send_message("ping")
+            except (RpcError, GoogleAPIError) as e:
+                self.logger.warning("La sesión actual no responde, reiniciando sesión: %s", e)
+                self.chat_session = None
         if not self.chat_session:
             try:
                 self.chat_session = self.model.start_chat()
                 self.logger.info("Sesión de chat iniciada con el modelo Gemini.")
-            except Exception as e:
+            except (RpcError, GoogleAPIError) as e:
                 self.logger.exception("Error iniciando sesión de chat en Gemini: %s", e)
                 raise

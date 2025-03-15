@@ -4,9 +4,9 @@ Servicio para interactuar con la API de Telegram.
 Encapsula toda la lógica de comunicación con Telegram.
 """
 
-import os
 from typing import Tuple, Any, Optional
 import requests
+from src.configuration.central_config import CentralConfig
 
 class TelegramService:
     """Servicio para interactuar con la API de Telegram."""
@@ -19,7 +19,7 @@ class TelegramService:
         Returns:
             Tuple[bool, Optional[str]]: (éxito, mensaje_error)
         """
-        token = os.getenv("TELEGRAM_TOKEN")
+        token = CentralConfig.TELEGRAM_TOKEN
         if not token:
             return False, "TELEGRAM_TOKEN no está definido en las variables de entorno"
 
@@ -44,7 +44,7 @@ class TelegramService:
         if not valid:
             return False, error_msg
 
-        token = os.getenv("TELEGRAM_TOKEN")
+        token = CentralConfig.TELEGRAM_TOKEN
         set_webhook_url = f"https://api.telegram.org/bot{token}/setWebhook?url={url}"
 
         try:
@@ -66,7 +66,7 @@ class TelegramService:
         if not valid:
             return False, error_msg
 
-        token = os.getenv("TELEGRAM_TOKEN")
+        token = CentralConfig.TELEGRAM_TOKEN
         webhook_info_url = f"https://api.telegram.org/bot{token}/getWebhookInfo"
 
         try:

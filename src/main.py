@@ -9,18 +9,16 @@ Actualización de documentación:
     configuración del webhook en un único módulo.
 """
 
-import os
 import sys
 from flask import Flask
-from dotenv import load_dotenv
 from src.configuration.webhook_conf import WebhookConfigurator
 from src.views.app_view import blueprint as app_blueprint
+from src.configuration.central_config import CentralConfig
 from src.utils.logging.simple_logger import get_logger
 
 logger = get_logger()
 def create_app() -> Flask:
     """Crea y configura la aplicación Flask"""
-    load_dotenv()
     logger.debug("Argumentos de línea de comandos: %s", sys.argv)
     app = Flask(__name__)
     app.register_blueprint(app_blueprint)
@@ -29,7 +27,7 @@ def create_app() -> Flask:
 def main():
     "Punto de entrada principal de la aplicación"
     app = create_app()
-    port = int(os.getenv("PORT", "8000"))
+    port = CentralConfig.PORT
     logger.info("Servidor iniciándose en 0.0.0.0:%s", port)
     # Utiliza la configuración unificada del webhook a través de WebhookConfigService
     configurator = WebhookConfigurator()
