@@ -5,6 +5,9 @@ Path: src/services/message_sender.py
 import os
 from typing import Tuple, Optional
 import requests
+from src.utils.logging.simple_logger import get_logger
+
+logger = get_logger()
 
 def send_message(telegram_update, text: str) -> Tuple[bool, Optional[str]]:
     " Envía un mensaje a un chat de Telegram "
@@ -23,4 +26,5 @@ def send_message(telegram_update, text: str) -> Tuple[bool, Optional[str]]:
         response.raise_for_status()
         return True, None
     except requests.exceptions.RequestException as e:
+        logger.exception("Error enviando mensaje:")
         return False, f"Error enviando mensaje: {str(e)}"

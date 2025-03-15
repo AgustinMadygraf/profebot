@@ -3,7 +3,6 @@ Path: src/models/app_model.py
 """
 
 import os
-import json
 from typing import Optional, Dict, Any, Tuple
 from grpc import RpcError
 from google.api_core.exceptions import GoogleAPIError
@@ -12,6 +11,8 @@ import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
 from src.utils.logging.simple_logger import get_logger
 from src.services.message_sender import send_message as send_msg
+from src.services.config_service import get_system_instructions
+from src.utils.validators import validate_telegram_update
 
 _fallback_logger = get_logger()
 class TelegramUpdate(BaseModel):
@@ -29,10 +30,7 @@ class TelegramUpdate(BaseModel):
             api_key = os.getenv("GEMINI_API_KEY")
             if not api_key:
                 return "Error: GEMINI_API_KEY no configurado."
-            try:
-                system_instruction = self._load_system_instruction()
-            except (FileNotFoundError, json.JSONDecodeError) as e:
-                return str(e)
+            system_instruction = self._load_system_instruction()
             client = GeminiLLMClient(api_key, system_instruction)
             try:
                 return client.send_message(text)
@@ -41,46 +39,21 @@ class TelegramUpdate(BaseModel):
         return None
 
     def _load_system_instruction(self) -> str:
-        "Carga las instrucciones del sistema desde el archivo de configuración."
-        config_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "../utils/config.json")
-        )
-        _fallback_logger.debug("Cargando instrucciones del sistema desde: %s", config_path)
-        if not os.path.exists(config_path):
-            _fallback_logger.error(
-                "Archivo de configuración no encontrado en: %s, usando valor por defecto.", 
-                config_path
-            )
-            return "Responde de forma amistosa."
+        "Carga las instrucciones del sistema desde el servicio de configuración."
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                config = json.load(f)
-            system_instruction = config.get("system_instructions", "Responde de forma amistosa.")
-            if "system_instructions" in config:
-                _fallback_logger.info(
-                    "Instrucciones de sistema cargadas correctamente: %s", 
-                    system_instruction
-                )
-            else:
-                _fallback_logger.info(
-                    "No se encontró system_instructions en config; "
-                    "se usará el valor por defecto: %s",
-                    system_instruction
-                )
+            system_instruction = get_system_instructions()
+            _fallback_logger.info(
+                "Instrucciones de sistema obtenidas desde DB: %s", 
+                system_instruction
+            )
             return system_instruction
-        except json.JSONDecodeError as e:
+        except (ConnectionError, TimeoutError, ValueError) as e:
             _fallback_logger.error(
-                "Error al decodificar el archivo de configuración: %s. Usando valor por defecto.", 
+                "Error al cargar instrucciones desde el servicio de configuración: %s", 
                 e
             )
             return "Responde de forma amistosa."
-        except (OSError, IOError) as e:
-            _fallback_logger.exception(
-                "Error inesperado leyendo config: %s. Usando valor por defecto.", e
-            )
-            return "Responde de forma amistosa."
 
-    # Nuevo método estático para parsear un update de Telegram.
     @staticmethod
     def parse_update(update: Dict[str, Any]) -> Optional["TelegramUpdate"]:
         """
@@ -90,10 +63,14 @@ class TelegramUpdate(BaseModel):
             update: Diccionario con los datos del update.
             
         Returns:
-            Optional[TelegramUpdate]: Objeto TelegramUpdate o None si ocurre error.
+            Optional[TelegramUpdate]: Objeto TelegramUpdate o 
+            None si ocurre error o la validación falla.
         """
         try:
-            return TelegramUpdate.parse_obj(update)
+            parsed = TelegramUpdate.parse_obj(update)
+            if not validate_telegram_update(update):
+                return None
+            return parsed
         except ValueError:
             return None
 
@@ -147,18 +124,15 @@ class GeminiLLMClient(IStreamingLLMClient):
 
     def send_message_streaming(self, message: str, chunk_size: int = 30) -> str:
         """
-        Envía un mensaje al modelo y retorna la respuesta en modo streaming.
-        Se va acumulando en un string final.
+        Envía un mensaje al modelo y retorna la respuesta en modo streaming,
+        optimizada usando list comprehension.
         """
         self._start_chat_session()
         try:
             response = self.chat_session.send_message(message)
-            full_response = ""
-            offset = 0
-            while offset < len(response.text):
-                chunk = response.text[offset:offset + chunk_size]
-                full_response += chunk
-                offset += chunk_size
+            full_response = ''.join(
+                [response.text[i:i + chunk_size] for i in range(0, len(response.text), chunk_size)]
+            )
             return full_response
         except Exception as e:
             self.logger.error("Error durante la respuesta streaming en Gemini: %s", e)
@@ -166,8 +140,12 @@ class GeminiLLMClient(IStreamingLLMClient):
 
     def _start_chat_session(self):
         """
-        Inicia la sesión de chat si no existe.
+        Inicia la sesión de chat si no existe, con manejo de errores.
         """
         if not self.chat_session:
-            self.chat_session = self.model.start_chat()
-            self.logger.info("Sesión de chat iniciada con el modelo Gemini.")
+            try:
+                self.chat_session = self.model.start_chat()
+                self.logger.info("Sesión de chat iniciada con el modelo Gemini.")
+            except Exception as e:
+                self.logger.exception("Error iniciando sesión de chat en Gemini: %s", e)
+                raise
