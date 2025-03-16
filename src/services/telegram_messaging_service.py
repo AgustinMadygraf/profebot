@@ -9,7 +9,6 @@ from src.services.telegram_service import TelegramService
 class TelegramMessagingService(IMessagingService):
     "Servicio para enviar mensajes a través"
     def __init__(self):
-        # Delegación a la lógica existente.
         self._telegram_service = TelegramService()
 
     def send_message(self, chat_id: int, text: str) -> Tuple[bool, Optional[str]]:

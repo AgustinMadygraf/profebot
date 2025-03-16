@@ -9,12 +9,13 @@ from src.models.app_model import TelegramUpdate
 from src.services.gemini_service import GeminiService
 from src.interfaces.messaging_service import IMessagingService
 
-logger = get_logger()
-
 class AppController:
     "Controlador de la aplicación que maneja las solicitudes."
-    def __init__(self, messaging_service: IMessagingService, gemini_service: GeminiService):
-        self.logger = logger
+    def __init__(self,
+                 messaging_service: IMessagingService,
+                 gemini_service: GeminiService,
+                 logger=None):
+        self.logger = logger if logger else get_logger()
         self.messaging_service = messaging_service
         self.gemini_service = gemini_service
 
