@@ -1,10 +1,5 @@
 """
 Path: src/services/webhook_config_service.py
-
-Actualización de documentación:
-  Este servicio centraliza la configuración del webhook, incluyendo la obtención de la URL pública,
-  verificación y configuración del webhook. Es utilizado exclusivamente por WebhookConfigurator para
-  unificar el flujo de configuración del webhook.
 """
 
 import requests
@@ -16,6 +11,26 @@ class WebhookConfigService:
     def __init__(self):
         self.logger = get_logger()
         self.telegram_service = TelegramService()
+
+    def run_configuration(self):
+        " Ejecuta el flujo de configuración del webhook."
+        public_url = self.get_public_url()
+        if not public_url:
+            self.logger.error("No se obtuvo una URL pública válida")
+            return False
+        self.logger.debug("URL pública obtenida: %s", public_url)
+        if self.verify_webhook(public_url):
+            self.logger.debug("El webhook ya está configurado correctamente")
+            return True
+        self.logger.debug("Configurando el webhook...")
+        return self.configure_webhook(public_url)
+
+    def get_public_url(self):
+        "Obtiene la URL pública para configurar el webhook usando métodos automático y manual."
+        url = self._get_public_url_auto()
+        if url:
+            return url
+        return self._get_public_url_manual()
 
     def _get_public_url_auto(self):
         "Intenta obtener la URL pública automáticamente mediante ngrok."
@@ -41,17 +56,6 @@ class WebhookConfigService:
         self.logger.error("URL inválida proporcionada.")
         return None
 
-    def get_public_url(self):
-        "Obtiene la URL pública para configurar el webhook usando métodos automático y manual."
-        url = self._get_public_url_auto()
-        if url:
-            return url
-        return self._get_public_url_manual()
-
-    def _desired_webhook_url(self, public_url: str) -> str:
-        "Construye la URL deseada para el webhook a partir de la URL pública."
-        return f"{public_url}/webhook"
-
     def verify_webhook(self, public_url):
         "Verifica si el webhook ya está configurado con la URL proporcionada"
         desired_webhook_url = self._desired_webhook_url(public_url)
@@ -64,6 +68,10 @@ class WebhookConfigService:
             return True
         return False
 
+    def _desired_webhook_url(self, public_url: str) -> str:
+        "Construye la URL deseada para el webhook a partir de la URL pública."
+        return f"{public_url}/webhook"
+
     def configure_webhook(self, public_url):
         "Configura el webhook con la URL proporcionada"
         desired_webhook_url = self._desired_webhook_url(public_url)
@@ -74,16 +82,3 @@ class WebhookConfigService:
             return True
         self.logger.error("Error configurando webhook: %s", error)
         return False
-
-    def run_configuration(self):
-        " Ejecuta el flujo de configuración del webhook."
-        public_url = self.get_public_url()
-        if not public_url:
-            self.logger.error("No se obtuvo una URL pública válida")
-            return False
-        self.logger.debug("URL pública obtenida: %s", public_url)
-        if self.verify_webhook(public_url):
-            self.logger.debug("El webhook ya está configurado correctamente")
-            return True
-        self.logger.debug("Configurando el webhook...")
-        return self.configure_webhook(public_url)

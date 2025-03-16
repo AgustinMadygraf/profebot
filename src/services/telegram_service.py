@@ -50,3 +50,28 @@ class TelegramService:
             return True, None
         except requests.exceptions.RequestException as e:
             return False, f"Error enviando mensaje: {e}"
+
+    @staticmethod
+    def configure_webhook(url: str) -> Tuple[bool, Optional[str]]:
+        """
+        Configura el webhook de Telegram.
+        
+        Args:
+            url: URL pública para el webhook
+            
+        Returns:
+            Tuple[bool, Optional[str]]: (éxito, mensaje_error)
+        """
+        valid, error_msg = TelegramService.validate_token()
+        if not valid:
+            return False, error_msg
+
+        token = CentralConfig.TELEGRAM_TOKEN
+        set_webhook_url = f"https://api.telegram.org/bot{token}/setWebhook?url={url}"
+
+        try:
+            response = requests.get(set_webhook_url, timeout=10)
+            response.raise_for_status()
+            return True, None
+        except requests.exceptions.RequestException as e:
+            return False, f"Error configurando webhook: {str(e)}"
