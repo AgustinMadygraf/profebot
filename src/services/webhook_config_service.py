@@ -4,12 +4,11 @@ Path: src/services/webhook_config_service.py
 
 import requests
 from src.services.telegram_service import TelegramService
-from src.utils.logging.simple_logger import get_logger
 
 class WebhookConfigService:
     "Clase que maneja la configuración del webhook"
     def __init__(self, telegram_service: TelegramService, logger=None):
-        self.logger = logger if logger else get_logger()
+        self.logger = logger
         self.telegram_service = telegram_service
 
     def run_configuration(self):

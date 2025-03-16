@@ -5,12 +5,11 @@ Path: src/services/gemini_service.py
 import google.generativeai as genai
 from grpc import RpcError
 from google.api_core.exceptions import GoogleAPIError
-from src.utils.logging.simple_logger import get_logger
 
 class GeminiService:
     " Servicio para interactuar con el modelo de lenguaje Gemini "
     def __init__(self, api_key: str, system_instruction: str, logger=None):
-        self.logger = logger if logger else get_logger()
+        self.logger = logger
         self.api_key = api_key
         self.system_instruction = system_instruction
         genai.configure(api_key=self.api_key)

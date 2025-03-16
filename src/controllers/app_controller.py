@@ -4,7 +4,6 @@ Controlador de la aplicación que maneja las solicitudes.
 """
 
 from typing import Optional
-from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.gemini_service import GeminiService
 from src.interfaces.messaging_service import IMessagingService
@@ -15,7 +14,7 @@ class AppController:
                  messaging_service: IMessagingService,
                  gemini_service: GeminiService,
                  logger=None):
-        self.logger = logger if logger else get_logger()
+        self.logger = logger
         self.messaging_service = messaging_service
         self.gemini_service = gemini_service
 
