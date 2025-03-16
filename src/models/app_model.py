@@ -2,7 +2,7 @@
 Path: src/models/app_model.py
 """
 
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any
 from grpc import RpcError
 from google.api_core.exceptions import GoogleAPIError
 from pydantic import BaseModel
@@ -10,7 +10,6 @@ import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
 from src.utils.logging.simple_logger import get_logger
 from src.services.config_service import get_system_instructions
-from src.services.telegram_service import TelegramService
 
 _fallback_logger = get_logger()
 
@@ -61,13 +60,6 @@ class TelegramUpdate(BaseModel):
         except ValueError as e:
             _fallback_logger.error("Error parsing Telegram update: %s. Error: %s", update, e)
             return None
-
-    def send_message(self, text: str) -> Tuple[bool, Optional[str]]:
-        " Envía un mensaje a un chat de Telegram "
-        if not (self.message and "chat" in self.message and "id" in self.message["chat"]):
-            return False, "chat_id no encontrado en el update"
-        service = TelegramService()
-        return service.send_message(self.message["chat"]["id"], text)
 
 # [ANÁLISIS] Clase GeminiLLMClient:
 # Esta clase encapsula la comunicación con el modelo Gemini.

@@ -6,16 +6,16 @@ Controlador de la aplicación que maneja las solicitudes.
 from typing import Optional
 from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
-from src.services.telegram_service import TelegramService
 from src.services.gemini_service import GeminiService
+from src.interfaces.messaging_service import IMessagingService
 
 logger = get_logger()
 
 class AppController:
     "Controlador de la aplicación que maneja las solicitudes."
-    def __init__(self, telegram_service: TelegramService, gemini_service: GeminiService):
+    def __init__(self, messaging_service: IMessagingService, gemini_service: GeminiService):
         self.logger = logger
-        self.telegram_service = telegram_service
+        self.messaging_service = messaging_service
         self.gemini_service = gemini_service
 
     def process_update(self, update: dict) -> Optional[str]:
@@ -67,7 +67,7 @@ class AppController:
             self.logger.error("chat_id no encontrado en el update")
             return
 
-        success, error_msg = self.telegram_service.send_message(
+        success, error_msg = self.messaging_service.send_message(
             telegram_update.message["chat"]["id"], text
         )
         if success:
