@@ -18,3 +18,7 @@ class TelegramMessagingService(IMessagingService):
     def get_webhook_info(self) -> Tuple[bool, Any]:
         "Obtiene información del webhook delegando a TelegramService"
         return self._telegram_service.get_webhook_info()
+
+    def configure_webhook(self, url: str) -> Tuple[bool, Optional[str]]:
+        "Configura el webhook delegando a TelegramService"
+        return self._telegram_service.configure_webhook(url)
