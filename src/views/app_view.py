@@ -18,7 +18,7 @@ def webhook():
     "Endpoint para recibir actualizaciones de Telegram, integrando el flujo unificado del webhook."
     update = request.get_json()
     logger.debug("webhook - Received update: %s", update)
-    # Se obtiene el controlador desde la configuración de la aplicación
+
     controller = current_app.config.get("controller")
     if not controller:
         logger.error("Controlador no encontrado en la configuración de la aplicación")

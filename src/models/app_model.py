@@ -31,7 +31,7 @@ class TelegramUpdate(BaseModel):
             if not api_key:
                 return "Error: GEMINI_API_KEY no configurado."
             system_instruction = self._load_system_instruction()
-            # Utilizar GeminiService en lugar de GeminiLLMClient
+
             client = GeminiService(api_key, system_instruction)
             try:
                 return client.send_message(text)
@@ -57,16 +57,7 @@ class TelegramUpdate(BaseModel):
 
     @staticmethod
     def parse_update(update: Dict[str, Any]) -> Optional["TelegramUpdate"]:
-        """
-        Parsea un diccionario con datos de Telegram y retorna un objeto TelegramUpdate.
-        
-        Args:
-            update: Diccionario con los datos del update.
-            
-        Returns:
-            Optional[TelegramUpdate]: Objeto TelegramUpdate o 
-            None si ocurre error o la validación falla.
-        """
+        " Parsea un objeto de actualización de Telegram "
         try:
             parsed = TelegramUpdate.parse_obj(update)
             return parsed
