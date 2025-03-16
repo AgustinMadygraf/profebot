@@ -69,9 +69,6 @@ class TelegramUpdate(BaseModel):
         """
         try:
             parsed = TelegramUpdate.parse_obj(update)
-            # Se elimina la validación externa redundante (validate_telegram_update)
-            # if not validate_telegram_update(update):
-            #     return None
             return parsed
         except ValueError:
             return None

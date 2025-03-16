@@ -76,18 +76,14 @@ class WebhookConfigService:
         return False
 
     def run_configuration(self):
-        """
-        Ejecuta el flujo unificado de configuración del webhook.
-
-        Secuencia:
-          1. Obtención de la URL pública (automática o manual).
-          2. Verificación de si el webhook ya está configurado.
-          3. Configuración del webhook en Telegram si es necesario.
-        """
+        " Ejecuta el flujo de configuración del webhook."
         public_url = self.get_public_url()
         if not public_url:
             self.logger.error("No se obtuvo una URL pública válida")
             return False
+        self.logger.debug("URL pública obtenida: %s", public_url)
         if self.verify_webhook(public_url):
+            self.logger.debug("El webhook ya está configurado correctamente")
             return True
+        self.logger.debug("Configurando el webhook...")
         return self.configure_webhook(public_url)
