@@ -11,6 +11,8 @@ from src.configuration.central_config import CentralConfig
 from src.utils.logging.simple_logger import get_logger, log_exception
 from src.controllers.app_controller import AppController
 from src.views.app_view import blueprint as app_blueprint
+from src.services.config_service import get_system_instructions
+from src.services.gemini_service import GeminiService
 
 logger = get_logger()
 
@@ -28,7 +30,9 @@ def main():
 
     telegram_service = TelegramService()
 
-    controller_instance = AppController(telegram_service)
+    gemini_service = GeminiService(CentralConfig.GEMINI_API_KEY, get_system_instructions())
+
+    controller_instance = AppController(telegram_service, gemini_service)
 
     app = create_app(controller_instance)
     port = CentralConfig.PORT

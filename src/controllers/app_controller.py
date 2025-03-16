@@ -7,14 +7,16 @@ from typing import Optional
 from src.utils.logging.simple_logger import get_logger
 from src.models.app_model import TelegramUpdate
 from src.services.telegram_service import TelegramService
+from src.services.gemini_service import GeminiService
 
 logger = get_logger()
 
 class AppController:
     "Controlador de la aplicación que maneja las solicitudes."
-    def __init__(self, telegram_service: TelegramService):
+    def __init__(self, telegram_service: TelegramService, gemini_service: GeminiService):
         self.logger = logger
         self.telegram_service = telegram_service
+        self.gemini_service = gemini_service
 
     def process_update(self, update: dict) -> Optional[str]:
         "Procesa un update de Telegram y genera una respuesta"
@@ -40,8 +42,22 @@ class AppController:
             return None
 
     def generate_response(self, telegram_update: TelegramUpdate) -> Optional[str]:
-        "Genera una respuesta para un objeto TelegramUpdate"
-        return telegram_update.get_response()
+        "Genera una respuesta para un objeto TelegramUpdate utilizando el servicio Gemini."
+        original_text = telegram_update.get_response()
+        if original_text:
+            if original_text.lower() == 'test':
+                return original_text
+            try:
+
+                response = self.gemini_service.send_message(original_text)
+                return response
+            except (ConnectionError, TimeoutError) as e:
+                self.logger.error("Error de conexión generando respuesta de Gemini: %s", e)
+                return None
+            except ValueError as e:
+                self.logger.error("Error de valor generando respuesta de Gemini: %s", e)
+                return None
+        return None
 
     def send_message(self, telegram_update: TelegramUpdate, text: str) -> None:
         "Envía un mensaje a un chat de Telegram usando la instancia inyectada de TelegramService"

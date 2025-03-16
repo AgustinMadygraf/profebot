@@ -10,33 +10,30 @@ import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
 from src.utils.logging.simple_logger import get_logger
 from src.services.config_service import get_system_instructions
-from src.configuration.central_config import CentralConfig
-from src.services.gemini_service import GeminiService
 from src.services.telegram_service import TelegramService
 
 _fallback_logger = get_logger()
+
+# [ANÁLISIS] Clase TelegramUpdate:
+# Esta clase se encarga de la validación y representación del update de Telegram.
+# Nota: La lógica de comunicación externa (como el envío de mensajes mediante GeminiService)
+# debería migrarse a la capa de servicios.
 class TelegramUpdate(BaseModel):
     " Modelo para representar un objeto de actualización de Telegram "
     update_id: int
     message: Optional[Dict[str, Any]]
     def get_response(self) -> Optional[str]:
-        " Procesa el mensaje recibido y retorna una respuesta"
+        """
+        Procesa el mensaje recibido.
+        Si es 'test' retorna el mensaje de prueba;
+        de lo contrario, solo retorna el texto para que el controlador invoque al servicio Gemini.
+        """
         if self.message:
             text = self.message.get('text')
             if text.lower() == 'test':
-                return (
-                    "¡Hola! ¿Cómo puedo ayudarte? <modo test>."
-                )
-            api_key = CentralConfig.GEMINI_API_KEY
-            if not api_key:
-                return "Error: GEMINI_API_KEY no configurado."
-            system_instruction = self._load_system_instruction()
-
-            client = GeminiService(api_key, system_instruction)
-            try:
-                return client.send_message(text)
-            except (RpcError, GoogleAPIError) as e:
-                return f"Error generando respuesta: {e}"
+                return "¡Hola! ¿Cómo puedo ayudarte? <modo test>."
+            # Se elimina la lógica de comunicación externa
+            return text
         return None
 
     def _load_system_instruction(self) -> str:
@@ -61,7 +58,8 @@ class TelegramUpdate(BaseModel):
         try:
             parsed = TelegramUpdate.parse_obj(update)
             return parsed
-        except ValueError:
+        except ValueError as e:
+            _fallback_logger.error("Error parsing Telegram update: %s. Error: %s", update, e)
             return None
 
     def send_message(self, text: str) -> Tuple[bool, Optional[str]]:
@@ -71,6 +69,11 @@ class TelegramUpdate(BaseModel):
         service = TelegramService()
         return service.send_message(self.message["chat"]["id"], text)
 
+# [ANÁLISIS] Clase GeminiLLMClient:
+# Esta clase encapsula la comunicación con el modelo Gemini.
+# Nota: La función de envío de mensajes y streaming mezclan lógica de comunicación externa
+# y manejo de sesiones.
+# Se recomienda migrar esta parte a la capa de servicios para centralizar la integración con Gemini.
 class GeminiLLMClient(IStreamingLLMClient):
     """
     Encapsula la lógica de interacción con el modelo de Gemini,
@@ -105,7 +108,8 @@ class GeminiLLMClient(IStreamingLLMClient):
 
     def send_message(self, message: str) -> str:
         """
-        Envía un mensaje al modelo y retorna la respuesta completa en texto.
+        Envía un mensaje al modelo y retorna la respuesta.
+        Se recomienda: delegar la comunicación a un servicio especializado.
         """
         self._start_chat_session()
         try:
@@ -117,9 +121,8 @@ class GeminiLLMClient(IStreamingLLMClient):
 
     def send_message_streaming(self, message: str, chunk_size: int = 30) -> str:
         """
-        Envía un mensaje al modelo y retorna la respuesta en modo streaming,
-        dividiéndola en chunks de tamaño 'chunk_size'. Se valida que chunk_size sea
-        un valor positivo; en caso contrario, se ajusta a 30.
+        Envía un mensaje al modelo con respuesta en modo streaming.
+        Nota: La lógica de división en chunks podría centralizarse en la capa de servicios.
         """
         self._start_chat_session()
         if chunk_size <= 0:
