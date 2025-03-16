@@ -75,4 +75,5 @@ class AppController:
             chat_id = telegram_update.message["chat"]["id"]
             self.logger.info("Mensaje enviado correctamente al chat_id: %s", chat_id)
         else:
-            self.logger.error("Error enviando mensaje: %s", error_msg)
+            self.logger.error("Error enviando mensaje al chat_id %s, text length %d: %s",
+                               telegram_update.message["chat"]["id"], len(text), error_msg)

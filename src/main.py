@@ -13,6 +13,16 @@ from src.services.config_service import get_system_instructions
 from src.services.gemini_service import GeminiService
 from src.services.telegram_messaging_service import TelegramMessagingService
 
+def create_dependencies():
+    "Crea las dependencias de la aplicación."
+    logger = LoggerService()
+    telegram_messaging_service = TelegramMessagingService()
+    system_instructions = get_system_instructions()
+    gemini_service = GeminiService(CentralConfig.GEMINI_API_KEY, system_instructions, logger)
+    controller_instance = AppController(telegram_messaging_service, gemini_service, logger)
+    config_service = WebhookConfigService(telegram_messaging_service, logger)
+    return logger, controller_instance, config_service
+
 def create_app(controller: AppController) -> Flask:
     """Crea y configura la aplicación Flask con inyección de dependencias."""
     app = Flask(__name__)
@@ -23,23 +33,13 @@ def create_app(controller: AppController) -> Flask:
 def main():
     """
     Punto de entrada principal de la aplicación.
-    Se centraliza la creación del LoggerService, inyectándolo en todos los componentes críticos 
-    (TelegramMessagingService, GeminiService, AppController, WebhookConfigService) para asegurar
-    un logging uniforme y facilitar la administración de dependencias.
+    Se centraliza la creación de las dependencias en create_dependencies().
     """
-    # Crear instancia central del logger
-    logger = LoggerService()
-
-    telegram_messaging_service = TelegramMessagingService()
-    gemini_service = GeminiService(CentralConfig.GEMINI_API_KEY, get_system_instructions(), logger)
-
-    controller_instance = AppController(telegram_messaging_service, gemini_service, logger)
-
+    logger, controller_instance, config_service = create_dependencies()
     app = create_app(controller_instance)
     port = CentralConfig.PORT
     logger.info("Servidor iniciándose en 0.0.0.0:%s", port)
 
-    config_service = WebhookConfigService(telegram_messaging_service, logger)
     threading.Thread(target=config_service.run_configuration, daemon=True).start()
 
     try:
