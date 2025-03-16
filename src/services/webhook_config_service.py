@@ -8,12 +8,12 @@ from src.utils.logging.simple_logger import get_logger
 
 class WebhookConfigService:
     "Clase que maneja la configuración del webhook"
-    def __init__(self):
+    def __init__(self, telegram_service: TelegramService):
         self.logger = get_logger()
-        self.telegram_service = TelegramService()
+        self.telegram_service = telegram_service
 
     def run_configuration(self):
-        " Ejecuta el flujo de configuración del webhook."
+        "Ejecuta el flujo de configuración del webhook."
         public_url = self.get_public_url()
         if not public_url:
             self.logger.error("No se obtuvo una URL pública válida")
