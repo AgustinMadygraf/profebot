@@ -15,9 +15,13 @@ from src.services.gemini_service import GeminiService
 from src.services.telegram_messaging_service import TelegramMessagingService
 
 class Application:
-    " Clase principal de la aplicación "
-    def __init__(self):
-        self.logger, self.controller, self.config_service = self.create_dependencies()
+    "Clase principal de la aplicación"
+    def __init__(self, logger=None, controller=None, config_service=None):
+        if not (logger and controller and config_service):
+            logger, controller, config_service = self.create_dependencies()
+        self.logger = logger
+        self.controller = controller
+        self.config_service = config_service
         self.app = self.create_app(self.controller)
         self.port = CentralConfig.PORT
         self.logger.info("Servidor iniciándose en 0.0.0.0:%s", self.port)
@@ -54,3 +58,6 @@ class Application:
             log_exception(e)
         finally:
             self.logger.info("El servidor se ha detenido")
+
+if __name__ == '__main__':
+    Application().run()
