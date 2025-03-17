@@ -60,10 +60,18 @@ class AppController:
                     "[AppController] Error de valor generando respuesta de Gemini: %s", e
                 )
                 return None
+            # Nuevo bloque para capturar excepciones inesperadas
+            except (RuntimeError, TypeError) as e:
+                self.logger.error(
+                    "[AppController] Error inesperado generando respuesta de Gemini: %s", e
+                )
+                return None
         return None
 
     def send_message(self, telegram_update: TelegramUpdate, text: str) -> None:
         "Envía un mensaje a un chat de Telegram usando la instancia inyectada de TelegramService"
+        self.logger.debug("Iniciando envío de mensaje al chat_id: %s con texto de longitud: %d",
+                          telegram_update.message["chat"]["id"], len(text))
         if not (telegram_update.message and
                 "chat" in telegram_update.message and 
                 "id" in telegram_update.message["chat"]):

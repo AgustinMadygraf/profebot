@@ -8,7 +8,7 @@ from src.services.webhook_config_service import WebhookConfigService
 from src.configuration.central_config import CentralConfig
 from src.utils.logging.simple_logger import LoggerService
 from src.controllers.app_controller import AppController
-from src.views.app_view import blueprint as app_blueprint
+from src.views.app_view import blueprint
 from src.services.database_connection_manager import DatabaseConnectionManager
 from src.services.config_repository import ConfigRepository
 from src.services.gemini_service import GeminiService
@@ -40,6 +40,8 @@ class Application:
         gemini_service = GeminiService(CentralConfig.GEMINI_API_KEY, system_instructions, logger)
         controller_instance = AppController(telegram_messaging_service, gemini_service, logger)
         config_service = WebhookConfigService(telegram_messaging_service, logger)
+        # Auditoría de dependencias: se registran las dependencias creadas
+        logger.debug("[Application] Dependencias creadas: Logger, Controller, ConfigService")
         return logger, controller_instance, config_service
 
     def create_app(self, controller: AppController) -> Flask:
@@ -47,7 +49,7 @@ class Application:
         app = Flask(__name__)
         app.config["controller"] = controller
         app.config["logger"] = self.logger
-        app.register_blueprint(app_blueprint)
+        app.register_blueprint(blueprint)
         return app
 
     def run(self):

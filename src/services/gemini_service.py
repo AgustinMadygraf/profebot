@@ -28,6 +28,17 @@ class GeminiService:
         self.chat_history = []  # Nuevo buffer para almacenar el historial de chat
         self.logger.info("GeminiService inicializado correctamente.")
 
+    def _is_critical_exception(self, e: Exception) -> bool:
+        """
+        Clasifica la excepción como crítica o no crítica.
+        Retorna True si es crítica y requiere reiniciar la sesión.
+        """
+        # Ejemplo: tratar errores conocidos y clasificarlos según contenido.
+        error_msg = str(e).lower()
+        if "non-critical" in error_msg:
+            return False
+        return True
+
     def _start_chat_session(self):
         if self.chat_session:
             self.logger.debug("Verificando sesión actual con ping.")
@@ -36,10 +47,8 @@ class GeminiService:
                 self.logger.debug("Ping exitoso; la sesión se mantiene activa.")
             except (RpcError, GoogleAPIError) as e:
                 self.logger.warning("Ping fallido. Detalle: %s", e)
-                # Aquí se puede evaluar si el error es crítico:
-                # if es error crítico:
-                #    Reiniciar sesión; de lo contrario, no reiniciar para conservar el historial.
-                if "non-critical" not in str(e).lower():
+                # Se evalúa si el error es crítico utilizando la nueva función:
+                if self._is_critical_exception(e):
                     self.logger.warning("Error crítico detectado, reiniciando sesión.")
                     self.chat_session = None
                 else:
@@ -83,9 +92,10 @@ class GeminiService:
         if chunk_size <= 0:
             self.logger.warning("chunk_size (%d) no es válido. Se ajusta a 30.", chunk_size)
             chunk_size = 30
-        self.logger.debug("Enviando mensaje (streaming): %s", message)
+        self.logger.debug("Iniciando transmisión streaming para mensaje: %s", message)
         try:
             response = self.chat_session.send_message(message)
+            self.logger.debug("Respuesta recibida con longitud: %d", len(response.text))
             full_text = ''.join(
                 response.text[i:i + chunk_size] for i in range(0, len(response.text), chunk_size)
             )

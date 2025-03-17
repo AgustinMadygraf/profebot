@@ -16,6 +16,12 @@ console_handler.setLevel(logging.DEBUG)
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
+# Nuevo Protocolo de Logging Consistente:
+# - Niveles soportados: DEBUG, INFO, WARNING, ERROR
+# - Formato estándar del mensaje: [NIVEL] - [timestamp] - Mensaje
+# - Todos los módulos deben utilizar este logger para garantizar la trazabilidad uniforme.
+# - Se recomienda utilizar métodos: debug(), info(), warning(), error() según el contexto.
+
 class LoggerService(ILogger):
     """
     LoggerService encapsula la configuración central de logging y
