@@ -24,7 +24,6 @@ class TelegramUpdate(BaseModel):
             text = self.message.get('text')
             if text.lower() == 'test':
                 return "¡Hola! ¿Cómo puedo ayudarte? <modo test>."
-            # Se elimina la lógica de comunicación externa
             return text
         return None
 

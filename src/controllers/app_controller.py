@@ -21,24 +21,24 @@ class AppController:
     def process_update(self, update: dict) -> Optional[str]:
         "Procesa un update de Telegram y genera una respuesta"
         try:
-            self.logger.info("Procesando update")
+            self.logger.info("[AppController] Procesando update")
             telegram_update = TelegramUpdate.parse_update(update, self.logger)
-            self.logger.debug("Update parseado: %s", telegram_update)
+            self.logger.debug("[AppController] Update parseado: %s", telegram_update)
             if not telegram_update:
-                self.logger.error("No se pudo parsear el update")
+                self.logger.error("[AppController] No se pudo parsear el update")
                 return None
 
             response = self.generate_response(telegram_update)
             if response:
-                self.logger.info("Respuesta generada")
+                self.logger.info("[AppController] Respuesta generada")
                 self.send_message(telegram_update, response)
                 return response
 
-            self.logger.info("Update recibido sin respuesta generada")
+            self.logger.info("[AppController] Update recibido sin respuesta generada")
             return None
         except (ValueError, KeyError) as e:
-            self.logger.exception("Excepción en process_update: %s", e)
-            self.logger.error("Error inesperado al procesar el update")
+            self.logger.exception("[AppController] Excepción en process_update: %s", e)
+            self.logger.error("[AppController] Error inesperado al procesar el update")
             return None
 
     def generate_response(self, telegram_update: TelegramUpdate) -> Optional[str]:
@@ -48,14 +48,17 @@ class AppController:
             if original_text.lower() == 'test':
                 return original_text
             try:
-
                 response = self.gemini_service.send_message(original_text)
                 return response
             except (ConnectionError, TimeoutError) as e:
-                self.logger.error("Error de conexión generando respuesta de Gemini: %s", e)
+                self.logger.error(
+                    "[AppController] Error de conexión generando respuesta de Gemini: %s", e
+                )
                 return None
             except ValueError as e:
-                self.logger.error("Error de valor generando respuesta de Gemini: %s", e)
+                self.logger.error(
+                    "[AppController] Error de valor generando respuesta de Gemini: %s", e
+                )
                 return None
         return None
 
@@ -64,7 +67,7 @@ class AppController:
         if not (telegram_update.message and
                 "chat" in telegram_update.message and 
                 "id" in telegram_update.message["chat"]):
-            self.logger.error("chat_id no encontrado en el update")
+            self.logger.error("[AppController] chat_id no encontrado en el update")
             return
 
         success, error_msg = self.messaging_service.send_message(
@@ -72,7 +75,11 @@ class AppController:
         )
         if success:
             chat_id = telegram_update.message["chat"]["id"]
-            self.logger.info("Mensaje enviado correctamente al chat_id: %s", chat_id)
+            self.logger.info(
+                "[AppController] Mensaje enviado correctamente al chat_id: %s", chat_id
+            )
         else:
-            self.logger.error("Error enviando mensaje al chat_id %s, text length %d: %s",
-                               telegram_update.message["chat"]["id"], len(text), error_msg)
+            self.logger.error(
+                "[AppController] Error enviando mensaje al chat_id %s, text length %d: %s",
+                telegram_update.message["chat"]["id"], len(text), error_msg
+            )

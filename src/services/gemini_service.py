@@ -25,16 +25,27 @@ class GeminiService:
             system_instruction=self.system_instruction
         )
         self.chat_session = None
+        self.chat_history = []  # Nuevo buffer para almacenar el historial de chat
         self.logger.info("GeminiService inicializado correctamente.")
 
     def _start_chat_session(self):
         if self.chat_session:
+            self.logger.debug("Verificando sesión actual con ping.")
             try:
                 _ = self.chat_session.send_message("ping")
+                self.logger.debug("Ping exitoso; la sesión se mantiene activa.")
             except (RpcError, GoogleAPIError) as e:
-                self.logger.warning("La sesión actual no responde, reiniciando sesión: %s", e)
-                self.chat_session = None
+                self.logger.warning("Ping fallido. Detalle: %s", e)
+                # Aquí se puede evaluar si el error es crítico:
+                # if es error crítico:
+                #    Reiniciar sesión; de lo contrario, no reiniciar para conservar el historial.
+                if "non-critical" not in str(e).lower():
+                    self.logger.warning("Error crítico detectado, reiniciando sesión.")
+                    self.chat_session = None
+                else:
+                    self.logger.debug("Error no crítico; se mantiene la sesión.")
         if not self.chat_session:
+            self.logger.debug("Iniciando nueva sesión de chat con Gemini.")
             try:
                 self.chat_session = self.model.start_chat()
                 self.logger.info("Sesión de chat iniciada con Gemini.")
@@ -45,8 +56,13 @@ class GeminiService:
     def send_message(self, message: str) -> str:
         " Send a message to the Gemini model and return the full response as text. "
         self._start_chat_session()
+        self.logger.debug("Enviando mensaje: %s", message)
         try:
             response = self.chat_session.send_message(message)
+            # Actualizar historial
+            self.chat_history.append({"role": "user", "message": message})
+            self.chat_history.append({"role": "gemini", "message": response.text})
+            self.logger.debug("Historial actualizado: %s", self.chat_history)
             return response.text
         except Exception as e:
             self.logger.error("Error al enviar mensaje a Gemini: %s", e)
@@ -67,11 +83,16 @@ class GeminiService:
         if chunk_size <= 0:
             self.logger.warning("chunk_size (%d) no es válido. Se ajusta a 30.", chunk_size)
             chunk_size = 30
+        self.logger.debug("Enviando mensaje (streaming): %s", message)
         try:
             response = self.chat_session.send_message(message)
-            return ''.join(
+            full_text = ''.join(
                 response.text[i:i + chunk_size] for i in range(0, len(response.text), chunk_size)
             )
+            self.chat_history.append({"role": "user", "message": message})
+            self.chat_history.append({"role": "gemini", "message": full_text})
+            self.logger.debug("Historial actualizado (streaming): %s", self.chat_history)
+            return full_text
         except Exception as e:
             self.logger.error("Error durante la respuesta streaming en Gemini: %s", e)
             raise

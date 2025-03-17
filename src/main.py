@@ -24,7 +24,7 @@ class Application:
         self.config_service = config_service
         self.app = self.create_app(self.controller)
         self.port = CentralConfig.PORT
-        self.logger.info("Servidor iniciándose en 0.0.0.0:%s", self.port)
+        self.logger.info("[Application] Servidor iniciándose en 0.0.0.0:%s", self.port)
 
     def create_dependencies(self):
         " Crea las dependencias de la aplicación "
@@ -56,6 +56,6 @@ class Application:
         try:
             self.app.run(host="0.0.0.0", port=self.port, debug=True, use_reloader=False)
         except (OSError, RuntimeError) as e:
-            self.logger.exception("Exception occurred: %s", e)
+            self.logger.exception("[Application] Exception occurred: %s", e)
         finally:
-            self.logger.info("El servidor se ha detenido")
+            self.logger.info("[Application] El servidor se ha detenido")
