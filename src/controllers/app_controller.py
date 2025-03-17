@@ -22,7 +22,7 @@ class AppController:
         "Procesa un update de Telegram y genera una respuesta"
         try:
             self.logger.info("Procesando update")
-            telegram_update = TelegramUpdate.parse_update(update)
+            telegram_update = TelegramUpdate.parse_update(update, self.logger)
             self.logger.debug("Update parseado: %s", telegram_update)
             if not telegram_update:
                 self.logger.error("No se pudo parsear el update")

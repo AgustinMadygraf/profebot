@@ -4,9 +4,7 @@ Path: src/models/telegram_update.py
 
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
-from src.utils.logging.simple_logger import get_logger
 
-_fallback_logger = get_logger()
 
 # [ANÁLISIS] Clase TelegramUpdate:
 # Esta clase se encarga de la validación y representación del update de Telegram.
@@ -31,11 +29,12 @@ class TelegramUpdate(BaseModel):
         return None
 
     @staticmethod
-    def parse_update(update: Dict[str, Any]) -> Optional["TelegramUpdate"]:
-        " Parsea un objeto de actualización de Telegram "
+    def parse_update(update: Dict[str, Any], logger=None) -> Optional["TelegramUpdate"]:
+        "Parsea un objeto de actualización de Telegram"
         try:
             parsed = TelegramUpdate.parse_obj(update)
             return parsed
         except ValueError as e:
-            _fallback_logger.error("Error parsing Telegram update: %s. Error: %s", update, e)
+            if logger:
+                logger.error("Error parsing Telegram update: %s. Error: %s", update, e)
             return None
