@@ -3,9 +3,11 @@ Path: src/configuration/central_config.py
 Configuración central de la aplicación.
 ------------------------------------------------------------------------------
 Actualización de la Configuración y Difusión:
-- Se centralizan las variables críticas (por ejemplo, datos de BD, token de Telegram, clave API Gemini, puerto).
+- Se centralizan las variables críticas (por ejemplo, datos de BD,
+  token de Telegram, clave API Gemini, puerto).
 - Este módulo permite modificar la configuración clave sin tener que tocar múltiples archivos.
-- Equipo: Revisen este módulo y ajusten las variables de entorno según su entorno (desarrollo, pruebas, producción).
+- Equipo: Revisen este módulo y ajusten las variables de entorno
+  según su entorno (desarrollo, pruebas, producción).
 - Ejemplo de uso:
       from src.configuration.central_config import CentralConfig
       print(CentralConfig.GEMINI_API_KEY)
