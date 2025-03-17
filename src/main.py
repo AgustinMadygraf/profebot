@@ -6,7 +6,7 @@ import threading
 from flask import Flask
 from src.services.webhook_config_service import WebhookConfigService
 from src.configuration.central_config import CentralConfig
-from src.utils.logging.simple_logger import LoggerService, log_exception
+from src.utils.logging.simple_logger import LoggerService
 from src.controllers.app_controller import AppController
 from src.views.app_view import blueprint as app_blueprint
 from src.services.database_connection_manager import DatabaseConnectionManager
@@ -56,6 +56,6 @@ class Application:
         try:
             self.app.run(host="0.0.0.0", port=self.port, debug=True, use_reloader=False)
         except (OSError, RuntimeError) as e:
-            log_exception(e)
+            self.logger.exception("Exception occurred: %s", e)
         finally:
             self.logger.info("El servidor se ha detenido")

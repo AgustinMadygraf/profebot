@@ -63,11 +63,3 @@ class LoggerService(ILogger):
     def exception(self, msg: str, *args, **kwargs) -> None:
         "Registra un mensaje de excepción con información de la traza."
         self._logger.exception(msg, *args, stacklevel=2, **kwargs)
-
-def get_logger() -> ILogger:
-    "Función de compatibilidad que retorna una instancia de LoggerService."
-    return LoggerService()
-
-def log_exception(e: Exception):
-    "Registra una excepción utilizando la configuración global de logging."
-    logger.exception("Exception occurred: %s", e)
