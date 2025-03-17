@@ -31,9 +31,9 @@ class Application:
         logger = LoggerService()
         telegram_messaging_service = TelegramMessagingService()
 
-        connection_manager = DatabaseConnectionManager()
+        connection_manager = DatabaseConnectionManager(logger)
         connection_manager.create_database_if_not_exists()
-        repo = ConfigRepository(connection_manager)
+        repo = ConfigRepository(connection_manager, logger)
         repo.initialize_configuration()
         system_instructions = repo.get_system_instructions()
 

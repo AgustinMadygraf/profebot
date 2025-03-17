@@ -4,14 +4,12 @@ Path: src/services/database_connection_Manager.py
 
 import pymysql
 from src.configuration.central_config import CentralConfig
-from src.utils.logging.simple_logger import get_logger
 
-logger = get_logger()
-
-class DatabaseConnectionManager:
+class DatabaseConnectionManager():
     " Gestor de conexiones a la base de datos MySQL "
-    def __init__(self):
+    def __init__(self,logger = None):
         self.config = CentralConfig
+        self.logger = logger
 
     def create_database_if_not_exists(self):
         " Crea la base de datos si no existe "
@@ -23,7 +21,7 @@ class DatabaseConnectionManager:
         try:
             with connection.cursor() as cursor:
                 cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.config.DB_NAME};")
-                logger.debug("Base de datos '%s' verificada/creada.", self.config.DB_NAME)
+                self.logger.debug("Base de datos '%s' verificada/creada.", self.config.DB_NAME)
             connection.commit()
         finally:
             connection.close()
