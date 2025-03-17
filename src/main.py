@@ -9,42 +9,47 @@ from src.configuration.central_config import CentralConfig
 from src.utils.logging.simple_logger import LoggerService, log_exception
 from src.controllers.app_controller import AppController
 from src.views.app_view import blueprint as app_blueprint
-from src.services.config_service import get_system_instructions
+from src.services.config_service import DatabaseConnectionManager, ConfigRepository
 from src.services.gemini_service import GeminiService
 from src.services.telegram_messaging_service import TelegramMessagingService
 
-def create_dependencies():
-    "Crea las dependencias de la aplicación."
-    logger = LoggerService()
-    telegram_messaging_service = TelegramMessagingService()
-    system_instructions = get_system_instructions()
-    gemini_service = GeminiService(CentralConfig.GEMINI_API_KEY, system_instructions, logger)
-    controller_instance = AppController(telegram_messaging_service, gemini_service, logger)
-    config_service = WebhookConfigService(telegram_messaging_service, logger)
-    return logger, controller_instance, config_service
+class Application:
+    " Clase principal de la aplicación "
+    def __init__(self):
+        self.logger, self.controller, self.config_service = self.create_dependencies()
+        self.app = self.create_app(self.controller)
+        self.port = CentralConfig.PORT
+        self.logger.info("Servidor iniciándose en 0.0.0.0:%s", self.port)
 
-def create_app(controller: AppController) -> Flask:
-    """Crea y configura la aplicación Flask con inyección de dependencias."""
-    app = Flask(__name__)
-    app.config["controller"] = controller
-    app.register_blueprint(app_blueprint)
-    return app
+    def create_dependencies(self):
+        " Crea las dependencias de la aplicación "
+        logger = LoggerService()
+        telegram_messaging_service = TelegramMessagingService()
 
-def main():
-    """
-    Punto de entrada principal de la aplicación.
-    Se centraliza la creación de las dependencias en create_dependencies().
-    """
-    logger, controller_instance, config_service = create_dependencies()
-    app = create_app(controller_instance)
-    port = CentralConfig.PORT
-    logger.info("Servidor iniciándose en 0.0.0.0:%s", port)
+        connection_manager = DatabaseConnectionManager()
+        connection_manager.create_database_if_not_exists()
+        repo = ConfigRepository(connection_manager)
+        repo.initialize_configuration()
+        system_instructions = repo.get_system_instructions()
 
-    threading.Thread(target=config_service.run_configuration, daemon=True).start()
+        gemini_service = GeminiService(CentralConfig.GEMINI_API_KEY, system_instructions, logger)
+        controller_instance = AppController(telegram_messaging_service, gemini_service, logger)
+        config_service = WebhookConfigService(telegram_messaging_service, logger)
+        return logger, controller_instance, config_service
 
-    try:
-        app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
-    except (OSError, RuntimeError) as e:
-        log_exception(e)
-    finally:
-        logger.info("El servidor se ha detenido")
+    def create_app(self, controller: AppController) -> Flask:
+        " Crea la aplicación Flask "
+        app = Flask(__name__)
+        app.config["controller"] = controller
+        app.register_blueprint(app_blueprint)
+        return app
+
+    def run(self):
+        " Inicia la aplicación "
+        threading.Thread(target=self.config_service.run_configuration, daemon=True).start()
+        try:
+            self.app.run(host="0.0.0.0", port=self.port, debug=True, use_reloader=False)
+        except (OSError, RuntimeError) as e:
+            log_exception(e)
+        finally:
+            self.logger.info("El servidor se ha detenido")

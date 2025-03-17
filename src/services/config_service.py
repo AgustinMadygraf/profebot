@@ -4,7 +4,7 @@ Path: src/services/config_service.py
 
 import pymysql
 from src.configuration.central_config import CentralConfig
-from src.utils.logging.simple_logger import get_logger, log_exception
+from src.utils.logging.simple_logger import get_logger
 
 logger = get_logger()
 
@@ -78,16 +78,3 @@ class ConfigRepository:
                     )
                     connection.commit()
                     return default_instructions
-
-# Refactorización de la función get_system_instructions
-def get_system_instructions() -> str:
-    " Obtiene las instrucciones del sistema "
-    try:
-        connection_manager = DatabaseConnectionManager()
-        connection_manager.create_database_if_not_exists()
-        repo = ConfigRepository(connection_manager)
-        repo.initialize_configuration()
-        return repo.get_system_instructions()
-    except pymysql.MySQLError as e:
-        log_exception(e)
-    return "Responde de forma amistosa."

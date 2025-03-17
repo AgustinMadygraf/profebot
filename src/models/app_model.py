@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import google.generativeai as genai
 from src.interfaces.llm_client import IStreamingLLMClient
 from src.utils.logging.simple_logger import get_logger
-from src.services.config_service import get_system_instructions
+from src.services.config_service import DatabaseConnectionManager, ConfigRepository
 
 _fallback_logger = get_logger()
 
@@ -38,7 +38,13 @@ class TelegramUpdate(BaseModel):
     def _load_system_instruction(self) -> str:
         "Carga las instrucciones del sistema desde el servicio de configuración."
         try:
-            system_instruction = get_system_instructions()
+
+            connection_manager = DatabaseConnectionManager()
+            connection_manager.create_database_if_not_exists()
+            repo = ConfigRepository(connection_manager)
+            repo.initialize_configuration()
+            system_instructions = repo.get_system_instructions()
+            
             _fallback_logger.info(
                 "Instrucciones de sistema obtenidas desde DB: %s", 
                 system_instruction
