@@ -9,7 +9,8 @@ from src.configuration.central_config import CentralConfig
 from src.utils.logging.simple_logger import LoggerService, log_exception
 from src.controllers.app_controller import AppController
 from src.views.app_view import blueprint as app_blueprint
-from src.services.config_service import DatabaseConnectionManager, ConfigRepository
+from src.services.database_connection_manager import DatabaseConnectionManager
+from src.services.config_repository import ConfigRepository
 from src.services.gemini_service import GeminiService
 from src.services.telegram_messaging_service import TelegramMessagingService
 
