@@ -46,6 +46,7 @@ class Application:
         " Crea la aplicación Flask "
         app = Flask(__name__)
         app.config["controller"] = controller
+        app.config["logger"] = self.logger
         app.register_blueprint(app_blueprint)
         return app
 
@@ -58,6 +59,3 @@ class Application:
             log_exception(e)
         finally:
             self.logger.info("El servidor se ha detenido")
-
-if __name__ == '__main__':
-    Application().run()

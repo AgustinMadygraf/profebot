@@ -4,7 +4,7 @@ Controlador de la aplicación que maneja las solicitudes.
 """
 
 from typing import Optional
-from src.models.app_model import TelegramUpdate
+from src.models.telegram_update import TelegramUpdate
 from src.services.gemini_service import GeminiService
 from src.interfaces.messaging_service import IMessagingService
 

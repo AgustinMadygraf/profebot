@@ -3,9 +3,7 @@ Path: src/views/app_view.py
 """
 
 from flask import Blueprint, request, jsonify, current_app
-from src.utils.logging.simple_logger import get_logger, log_exception
 
-logger = get_logger()
 blueprint = Blueprint('app', __name__)
 
 @blueprint.route("/", methods=["GET"])
@@ -16,6 +14,7 @@ def index():
 @blueprint.route("/webhook", methods=["POST"])
 def webhook():
     "Endpoint para recibir actualizaciones de Telegram, integrando el flujo unificado del webhook."
+    logger = current_app.config.get("logger")
     update = request.get_json()
     logger.debug("webhook - Received update: %s", update)
 
@@ -30,5 +29,6 @@ def webhook():
 @blueprint.errorhandler(Exception)
 def handle_exception(e):
     "Manejador global de excepciones"
-    log_exception(e)
+    logger = current_app.config.get("logger")
+    logger.error(e)
     return jsonify({"status": "error", "detail": "Ocurrió un error interno"}), 500
